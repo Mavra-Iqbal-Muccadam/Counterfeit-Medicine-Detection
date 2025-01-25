@@ -1,4 +1,41 @@
 {
   "_format": "hh-sol-cache-2",
-  "files": {}
+  "files": {
+    "E:\\parhley behan\\ecommerce\\ecommerce\\blockchain\\contracts\\manufacturerregistration.sol": {
+      "lastModificationDate": 1737814112211,
+      "contentHash": "ee8166cb1c3e81e746c828a667cba9e7",
+      "sourceName": "blockchain/contracts/manufacturerregistration.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "ManufacturerRegistry"
+      ]
+    }
+  }
 }

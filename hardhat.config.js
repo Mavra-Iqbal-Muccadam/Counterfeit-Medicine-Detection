@@ -6,5 +6,8 @@ module.exports = {
     tests: "./blockchain/test",       
     scripts: "./blockchain/scripts",  
 },
+networks: {
+  hardhat: {}, // Local Hardhat network
+},
 
 };
