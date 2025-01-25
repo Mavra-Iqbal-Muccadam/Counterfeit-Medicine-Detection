@@ -1,16 +1,15 @@
-"use client"; // Ensure this directive is at the top for client-side rendering
+"use client";
 
 import { useState } from "react";
 import { ethers } from "ethers";
 
-export default function ManufacturerRegistrationForm() {
+export default function ManufacturerRegistrationForm({ walletAddress }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     licenseNumber: "",
     address: "",
-    walletAddress: "",
   });
 
   const [status, setStatus] = useState("");
@@ -28,34 +27,32 @@ export default function ManufacturerRegistrationForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!walletAddress) {
+      alert("Please connect your wallet first!");
+      return;
+    }
+
     try {
-      console.log("Form data being submitted:", formData); // Log form data
-  
-      if (!window.ethereum) {
-        alert("Please install MetaMask!");
-        return;
-      }
-  
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-  
+
       const tx = await contract.registerManufacturer(
         formData.name,
         formData.licenseNumber,
         formData.address
       );
-  
+
       setStatus("Transaction submitted. Waiting for confirmation...");
       await tx.wait();
       setStatus("Manufacturer registered successfully!");
     } catch (error) {
-      console.error("Error during registration:", error); // Log detailed error
+      console.error("Error during registration:", error);
       setStatus("An error occurred during registration.");
     }
   };
-  
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
@@ -87,13 +84,7 @@ export default function ManufacturerRegistrationForm() {
         </div>
         <div>
           <label>Blockchain Wallet Address</label>
-          <input
-            type="text"
-            name="walletAddress"
-            value={formData.walletAddress}
-            onChange={handleChange}
-            required
-          />
+          <input type="text" value={walletAddress || ""} readOnly />
         </div>
         <button type="submit">Register</button>
       </form>

@@ -1,16 +1,11 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-  // Get the contract factory
-  const ManufacturerRegistry = await ethers.getContractFactory("ManufacturerRegistry");
-
-  // Deploy the contract
+  const ManufacturerRegistry = await hre.ethers.getContractFactory("ManufacturerRegistry");
   const manufacturerRegistry = await ManufacturerRegistry.deploy();
+  await manufacturerRegistry.waitForDeployment();
 
-  // Wait for the deployment to finish
-  await manufacturerRegistry.deployed();
-
-  console.log("ManufacturerRegistry deployed to:", manufacturerRegistry.address);
+  console.log("ManufacturerRegistry deployed to:", await manufacturerRegistry.getAddress());
 }
 
 main().catch((error) => {
