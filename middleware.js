@@ -1,19 +1,22 @@
-import { NextResponse } from 'next/server';
-import { updateSession } from './backend/utils/supabase/middleware';
+import { NextResponse } from "next/server";
 
 export async function middleware(request) {
   try {
-    return await updateSession(request);
+    console.log("Middleware running...");
+    
+    // If authentication is needed in the future, add logic here
+
+    return NextResponse.next(); // ✅ Continue processing request
   } catch (error) {
-    console.error('Middleware error:', error);
-    // Handle error gracefully, returning a response if needed
-    return NextResponse.redirect(new URL('/error', request.url));
+    console.error("Middleware error:", error);
+    
+    // ✅ Redirect to an error page if middleware fails
+    return NextResponse.redirect(new URL("/error", request.url));
   }
 }
 
 export const config = {
   matcher: [
-    // Match all paths except those starting with the specified patterns or file extensions
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
