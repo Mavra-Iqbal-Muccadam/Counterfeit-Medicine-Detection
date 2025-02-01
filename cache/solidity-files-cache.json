@@ -6,9 +6,8 @@
       "contentHash": "ee8166cb1c3e81e746c828a667cba9e7",
       "sourceName": "blockchain/contracts/manufacturerregistration.sol",
       "solcConfig": {
-        "version": "0.8.28",
+        "version": "0.8.18",
         "settings": {
-          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
