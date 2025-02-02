@@ -109,8 +109,8 @@
 //     );
 //   }
 "use client";
-import ManufacturerForm from "../../components/ManufacturerForm"; // 
-import styles from "./page.module.css"; // 
+import ManufacturerForm from "../components/ManufacturerForm"; 
+import styles from "./page.module.css"; 
 
 export default function ManufacturerPage() {
   return (
