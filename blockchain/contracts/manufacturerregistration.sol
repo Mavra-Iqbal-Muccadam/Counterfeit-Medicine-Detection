@@ -1,34 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ManufacturerRegistry {
-    struct Manufacturer {
-        string name;
-        string licenseNumber;
-        string physicalAddress;
-        bool isApproved;
+contract IPFSStorage {
+    struct FileRecord {
+        string ipfsHash;
+        string fileName;
+        uint256 timestamp;
     }
 
-    mapping(address => Manufacturer) public manufacturers;
+    mapping(address => FileRecord[]) public userFiles;
 
-    function registerManufacturer(
-        string memory _name,
-        string memory _licenseNumber,
-        string memory _physicalAddress
-    ) public {
-        manufacturers[msg.sender] = Manufacturer({
-            name: _name,
-            licenseNumber: _licenseNumber,
-            physicalAddress: _physicalAddress,
-            isApproved: false
-        });
+    event FileStored(address indexed user, string ipfsHash, string fileName, uint256 timestamp);
+
+    function storeFile(string memory _ipfsHash, string memory _fileName) public {
+        userFiles[msg.sender].push(FileRecord(_ipfsHash, _fileName, block.timestamp));
+        emit FileStored(msg.sender, _ipfsHash, _fileName, block.timestamp);
     }
 
-    function approveManufacturer(address _manufacturer) public {
-        manufacturers[_manufacturer].isApproved = true;
-    }
-
-    function isManufacturerApproved(address _manufacturer) public view returns (bool) {
-        return manufacturers[_manufacturer].isApproved;
+    function getFiles(address _user) public view returns (FileRecord[] memory) {
+        return userFiles[_user];
     }
 }

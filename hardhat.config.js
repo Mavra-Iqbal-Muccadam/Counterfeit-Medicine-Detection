@@ -10,6 +10,7 @@ module.exports = {
     scripts: "./blockchain/scripts",
   },
   networks: {
+    hardhat: {}, // Local network
     sepolia: {
       url: process.env.BLOCKCHAIN_RPC_URL, 
       accounts: [process.env.PRIVATE_KEY]
