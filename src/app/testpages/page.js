@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 export default function UploadPage() {
+  // State for form data
   const [formData, setFormData] = useState({
     manufacturer_id: "",
     name: "",
@@ -17,18 +18,22 @@ export default function UploadPage() {
     website_url: "",
   });
 
+  // State for file upload
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [responseData, setResponseData] = useState(null);
 
+  // Handle input field changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Handle file selection
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -64,9 +69,11 @@ export default function UploadPage() {
         return;
       }
 
+      // Prepare blockchain transaction payload
       const blockchainPayload = {
         ipfsHash,
         walletAddress: formData.wallet_address,
+        license_number: formData.license_number,
         status: "pending",
       };
       
@@ -78,7 +85,6 @@ export default function UploadPage() {
         body: JSON.stringify(blockchainPayload),
       });
       
-      
       const blockchainData = await blockchainResponse.json();
 
       if (!blockchainResponse.ok) {
@@ -88,6 +94,7 @@ export default function UploadPage() {
 
       console.log("✅ [SUCCESS] Blockchain Transaction Successful! Tx Hash:", blockchainData.txHash);
 
+      // Store response data
       setResponseData({
         message: "Data stored on blockchain (Pending Approval)",
         transactionHash: blockchainData.txHash,
@@ -102,6 +109,9 @@ export default function UploadPage() {
       setLoading(false);
     }
   };
+
+
+
 
   return (
     <div className="container">
@@ -120,15 +130,6 @@ export default function UploadPage() {
         <input type="file" accept="application/pdf" onChange={handleFileChange} required />
         <button type="submit" disabled={loading}>{loading ? "Uploading..." : "Submit"}</button>
       </form>
-
-      {responseData && (
-        <div>
-          <h3>Data Stored on IPFS via Pinata!</h3>
-          <p>Metadata: <a href={responseData.metadataHash} target="_blank">{responseData.metadataHash}</a></p>
-          <p>PDF: <a href={responseData.pdfHash} target="_blank">{responseData.pdfHash}</a></p>
-          <p>Transaction: <a href={`https://etherscan.io/tx/${responseData.transactionHash}`} target="_blank">{responseData.transactionHash}</a></p>
-        </div>
-      )}
     </div>
   );
 }
