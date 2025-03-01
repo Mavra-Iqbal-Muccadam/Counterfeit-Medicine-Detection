@@ -4,6 +4,7 @@ const {
 } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
+import { ethers } from "ethers";
 
 describe("Lock", function () {
   // We define a fixture to reuse the same setup in every test.

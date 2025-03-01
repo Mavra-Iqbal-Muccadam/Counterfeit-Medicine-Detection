@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "E:\\parhley behan\\ecommerce\\ecommerce\\blockchain\\contracts\\manufacturerregistration.sol": {
-      "lastModificationDate": 1737814112211,
-      "contentHash": "ee8166cb1c3e81e746c828a667cba9e7",
+      "lastModificationDate": 1740833828654,
+      "contentHash": "340019140ee6e63bd5451f3b83ce0846",
       "sourceName": "blockchain/contracts/manufacturerregistration.sol",
       "solcConfig": {
         "version": "0.8.18",
@@ -33,7 +33,7 @@
         "^0.8.0"
       ],
       "artifacts": [
-        "ManufacturerRegistry"
+        "ManufacturerIPFSStorage"
       ]
     }
   }
