@@ -6,6 +6,8 @@ const ManufacturerForm = () => {
   const [name, setName] = useState("");
   const [licenceNo, setLicenceNo] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
@@ -16,6 +18,25 @@ const ManufacturerForm = () => {
   const [fileUrl, setFileUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordChecklist, setPasswordChecklist] = useState([
+    "At least 8 characters",
+    "At least one uppercase letter",
+    "At least one lowercase letter",
+    "At least one number",
+    "At least one special character",
+  ]);
+
+  const validatePassword = (value) => {
+    let checklist = [];
+    if (value.length < 8) checklist.push("At least 8 characters");
+    if (!/[A-Z]/.test(value)) checklist.push("At least one uppercase letter");
+    if (!/[a-z]/.test(value)) checklist.push("At least one lowercase letter");
+    if (!/\d/.test(value)) checklist.push("At least one number");
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) checklist.push("At least one special character");
+    setPasswordChecklist(checklist);
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -33,6 +54,13 @@ const ManufacturerForm = () => {
           break;
         case "email":
           setEmail(value);
+          break;
+        case "password":
+          setPassword(value);
+          validatePassword(value);
+          break;
+        case "confirmPassword":
+          setConfirmPassword(value);
           break;
         case "phone":
           setPhone(value);
@@ -67,6 +95,26 @@ const ManufacturerForm = () => {
         setErrors((prev) => ({
           ...prev,
           email: "❌ Please enter a valid email address!",
+        }));
+      }
+    }
+    if (name === "password") {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(value)) {
+        setErrors((prev) => ({
+          ...prev,
+          password:
+            "❌ Password must be at least 8 characters, include uppercase, lowercase, number, and special character!",
+        }));
+      }
+    }
+
+    if (name === "confirmPassword") {
+      if (value !== password) {
+        setErrors((prev) => ({
+          ...prev,
+          confirmPassword: "❌ Passwords do not match!",
         }));
       }
     }
@@ -108,6 +156,9 @@ const ManufacturerForm = () => {
     if (!name) formErrors.name = "Name is required!";
     if (!licenceNo) formErrors.licenseNo = "License number is required!";
     if (!email) formErrors.email = "Email is required!";
+    if (!password) formErrors.password = "Password is required!";
+    if (passwordChecklist.length > 0) formErrors.password = "Password does not meet the required criteria!";
+    if (password !== confirmPassword) formErrors.confirmPassword = "Passwords do not match!";
     if (!phone) formErrors.phone = "Phone number is required!";
     if (!walletAddress)
       formErrors.walletAddress = "Wallet address is required!";
@@ -128,6 +179,7 @@ const ManufacturerForm = () => {
     formData.append("name", name);
     formData.append("licenceNo", licenceNo);
     formData.append("email", email);
+    formData.append("password", password);
     formData.append("phone", phone);
     formData.append("website", website);
     formData.append("physicalAddress", physicalAddress);
@@ -192,6 +244,52 @@ const ManufacturerForm = () => {
         required
       />
       {errors.email && <p className={styles.error}>{errors.email}</p>}
+
+      {/* Password Field */}
+      <label className={styles.label}>New Password</label>
+      <div className={styles.inputContainer}>
+        <input
+          className={styles.input}
+          name="password"
+          type={showPassword ? "text" : "password"}
+          placeholder="Enter new password"
+          value={password}
+          onChange={handleChange}
+          required
+        />
+        <button
+          type="button"
+          className={styles.togglePassword}
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? "🙈" : "👁️"}
+        </button>
+      </div>
+      {errors.password && <p className={styles.error}>{errors.password}</p>}
+
+      {/* Confirm Password Field */}
+      <label className={styles.label}>Confirm New Password</label>
+      <div className={styles.inputContainer}>
+        <input
+          className={styles.input}
+          name="confirmPassword"
+          type={showConfirmPassword ? "text" : "password"}
+          placeholder="Re-enter password"
+          value={confirmPassword}
+          onChange={handleChange}
+          required
+        />
+        <button
+          type="button"
+          className={styles.togglePassword}
+          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+        >
+          {showConfirmPassword ? "🙈" : "👁️"}
+        </button>
+      </div>
+      {errors.confirmPassword && (
+        <p className={styles.error}>{errors.confirmPassword}</p>
+      )}
 
       <label className={styles.label}>Phone Number</label>
       <input
