@@ -1,9 +1,10 @@
 .formContainer {
+  position: relative;
   max-width: 500px;
-  background: #fff;
+  background: #e0f7fa; /* Light blue background */
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 20px; /* Rounded corners */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -11,6 +12,7 @@
   font-size: 22px;
   font-weight: bold;
   margin-bottom: 20px;
+  color: #007bff; /* Blue header */
 }
 
 .label {
@@ -23,7 +25,7 @@
 .input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 2px solid #007bff; /* Blue border */
   border-radius: 5px;
   margin-bottom: 5px;
 }
@@ -38,7 +40,7 @@
 .uploadButton {
   width: 100%;
   padding: 12px;
-  background: #007bff;
+  background: #0056b3; /* Darker blue */
   color: white;
   border: none;
   border-radius: 5px;
@@ -48,7 +50,7 @@
 }
 
 .uploadButton:hover {
-  background: #0056b3;
+  background: #003d82; /* Even darker blue */
 }
 
 /* 🔹 PDF Preview */
@@ -70,15 +72,36 @@
 }
 
 .submitButton {
-  background: #28a745;
+  background: #007bff; /* Blue submit button */
   color: white;
   padding: 12px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 20px; /* Rounded submit button */
   cursor: pointer;
   font-size: 16px;
 }
 
 .submitButton:hover {
-  background: #218838;
+  background: #0056b3; /* Darker blue on hover */
+}
+
+.doctorAnimation {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 50px; /* Smaller image */
+  height: 50px; /* Smaller image */
+  animation: wave 2s linear infinite;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(10deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
 }

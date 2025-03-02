@@ -10,7 +10,8 @@ export default function RootLayout({ children }) {
         </header>
         
         <main>
-          {children} {/* ✅ This renders the current page */}
+          {children} 
+          <p>thisis going to be my landing page </p>
         </main>
 
         <footer>
@@ -20,5 +21,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
-  

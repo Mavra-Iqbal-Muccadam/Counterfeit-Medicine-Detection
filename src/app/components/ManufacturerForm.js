@@ -3,9 +3,7 @@ import { useState } from "react";
 import InputField from "./InputField";
 import Button from "./Button";
 import styles from "../styles/ManufacturerForm.module.css";
-
-
-
+import Image from 'next/image';
 
 const ManufacturerForm = () => {
   const [formData, setFormData] = useState({
@@ -66,7 +64,7 @@ const ManufacturerForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
-      <h2 className={styles.heading}>Manufacturer Registration</h2>
+      <h2 className={styles.heading}>MANUFACTURER REGISTRATION</h2>
 
       <label className={styles.label}>Manufacturer Name</label>
       <input className={styles.input} name="name" placeholder="Enter manufacturer name" onChange={handleChange} required />
@@ -76,7 +74,7 @@ const ManufacturerForm = () => {
       {errors.licenseNo && <p className={styles.error}>{errors.licenseNo}</p>}
 
       <label className={styles.label}>Email</label>
-      <input className={styles.input} name="email" type="email" placeholder="Enter email" onChange={handleChange} required />
+      <input className={styles.input} type="email" name="email" placeholder="Enter email" onChange={handleChange} required />
 
       <label className={styles.label}>Phone Number</label>
       <input className={styles.input} name="phone" placeholder="Enter phone number" onChange={handleChange} required />
@@ -114,7 +112,10 @@ const ManufacturerForm = () => {
         I accept the privacy policy.
       </label>
 
-      <button type="submit" className={styles.submitButton}>Register</button>
+      <button type="submit" className={styles.submitButton}>REGISTER</button>
+      <div className={styles.doctorAnimation}>
+        <Image src="/next.svg" alt="Doctor" width={100} height={100} />
+      </div>
     </form>
   );
 };
