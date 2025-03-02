@@ -11,7 +11,7 @@ const ManufacturerForm = () => {
   const [physicalAddress, setPhysicalAddress] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
   const [certification, setCertification] = useState(null);
-  const [certificationNumber, setCertificationNumber] = useState(""); // State for certification number
+  const [certificationNumber, setCertificationNumber] = useState("");
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [fileUrl, setFileUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,28 +133,23 @@ const ManufacturerForm = () => {
     formData.append("physicalAddress", physicalAddress);
     formData.append("walletAddress", walletAddress);
     formData.append("certification", certification);
-    formData.append("certificationNumber", certificationNumber); // Include certification number
+    formData.append("certificationNumber", certificationNumber);
 
     try {
-      const response = await fetch(
-        "/api/certificateupload/certificateupload",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("/api/certificateupload/certificateupload", {
+        method: "POST",
+        body: formData,
+      });
 
       const result = await response.json();
       if (response.ok) {
-        alert(
-          "Certificate uploaded and manufacturer details saved successfully!"
-        );
+        alert("Certificate uploaded and manufacturer details saved successfully!");
       } else {
         alert(`Error: ${result.message}`);
       }
     } catch (error) {
-      console.error("Error uploading certificate:", error);
-      alert("Error uploading certificate.");
+      console.error("Error fetching data", error);
+      alert("Error fetching data.");
     } finally {
       setIsSubmitting(false);
     }
