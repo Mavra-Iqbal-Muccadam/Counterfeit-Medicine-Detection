@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ManufacturerRegistrationForm from "./manufacturerregistrationForm";
+import ManufacturerRegistrationForm from "../manufacturerregistrationform/page";
 import ConnectWallet from "./connect-wallet";
 
 export default function App() {
