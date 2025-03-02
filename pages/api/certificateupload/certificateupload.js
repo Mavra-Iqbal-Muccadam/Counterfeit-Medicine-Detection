@@ -2,9 +2,6 @@ import { supabase } from "../../../lib/supabaseClient";
 import formidable from "formidable";
 import fs from "fs";
 import pdfParse from "pdf-parse";
-import { HfInference } from '@huggingface/inference';
-
-const hf = new HfInference(process.env.HF_API_KEY); // Access the key from .env file
 
 // Disable bodyParser for file upload
 export const config = {
@@ -13,7 +10,6 @@ export const config = {
   },
 };
 
-// Function to extract certification number using regex
 async function extractCertificationNo(pdfPath) {
   try {
     const dataBuffer = fs.readFileSync(pdfPath);
@@ -22,12 +18,14 @@ async function extractCertificationNo(pdfPath) {
     // Log the extracted text from the PDF
     console.log("Extracted PDF Text:", data.text); // Debugging line
 
-    // Regex pattern to match a typical certification number (adjust as needed)
-    const certNumberPattern = /\b\d{9,10}\b/;  // Matches 9-10 digit numbers
+    // Enhanced regex pattern to handle variations in the certification number format
+    const certNumberPattern = /(?:Certificate\s*No|Certification\s*Number|Cert\s*No)[:\s-]*([A-Za-z0-9-]{7,15})/i;
+
+    // Search for the pattern in the extracted text
     const match = data.text.match(certNumberPattern);
 
-    if (match) {
-      const certificationNo = match[0];
+    if (match && match[1]) {
+      const certificationNo = match[1].trim(); // Extract and clean the certification number
       console.log("Extracted Certification No:", certificationNo);
       return certificationNo;
     } else {
@@ -40,17 +38,19 @@ async function extractCertificationNo(pdfPath) {
   }
 }
 
+
 // Function to upload PDF to Supabase Storage
 async function uploadCertificate(file, licenceNo) {
   try {
     const fileStream = fs.createReadStream(file.filepath);
 
+    // Add the duplex option to the upload method for Node.js 18+
     const { data, error } = await supabase.storage
       .from("certification_pdf_storage")
       .upload(`certificates/${licenceNo}.pdf`, fileStream, {
         cacheControl: "3600",
         upsert: true,
-        duplex: "half", // ✅ Fix for Node.js 18+
+        duplex: "half", // This is required for Node.js 18+ when using file streams
       });
 
     if (error) throw error;
@@ -61,6 +61,7 @@ async function uploadCertificate(file, licenceNo) {
     return null;
   }
 }
+
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ message: "Error parsing the form" });
     }
 
-    const { name, licenceNo, email, phone, physicalAddress, walletAddress } = fields;
+    const { name, licenceNo, email, phone, physicalAddress, walletAddress , website} = fields;
     const file = files.certification?.[0]; // Ensure file exists
 
     if (!name || !licenceNo || !email || !phone || !physicalAddress || !walletAddress || !file) {
@@ -116,6 +117,7 @@ export default async function handler(req, res) {
     const certificationUrl = publicUrlData?.publicUrl || null;
     console.log("Public URL:", certificationUrl); // Debugging line
 
+    
     // Step 5: Save manufacturer data to PostgreSQL
     const { error } = await supabase
       .from("manufacturers")
@@ -123,6 +125,7 @@ export default async function handler(req, res) {
         name,
         licence_no: licenceNo,
         email,
+        website_url:website || null,
         phone: phoneNumber, // Ensure it's an integer
         physical_address: physicalAddress,
         wallet_address: walletAddress,
@@ -130,7 +133,6 @@ export default async function handler(req, res) {
         certification_no: certificationNo, // Store the extracted certification number
         certification_bytea: certificationBinary, // Store PDF as binary
       }]);
-
 
     if (error) {
       console.error("Database Insert Error:", error);
