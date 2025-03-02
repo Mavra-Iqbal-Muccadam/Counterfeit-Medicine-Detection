@@ -74,7 +74,16 @@ const ManufacturerForm = () => {
       {errors.licenseNo && <p className={styles.error}>{errors.licenseNo}</p>}
 
       <label className={styles.label}>Email</label>
-      <input className={styles.input} type="email" name="email" placeholder="Enter email" onChange={handleChange} required />
+      <input
+        className={styles.input}
+        name="email"
+        type="email"
+        placeholder="Enter email"
+        value={email}
+        onChange={handleChange}
+        required
+      />
+      {errors.email && <p className={styles.error}>{errors.email}</p>}
 
       <label className={styles.label}>Phone Number</label>
       <input className={styles.input} name="phone" placeholder="Enter phone number" onChange={handleChange} required />
@@ -112,7 +121,13 @@ const ManufacturerForm = () => {
         I accept the privacy policy.
       </label>
 
-      <button type="submit" className={styles.submitButton}>REGISTER</button>
+      <button
+        type="submit"
+        className={styles.submitButton}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? "Submitting..." : "REGISTER"}
+      </button>
       <div className={styles.doctorAnimation}>
         <Image src="/next.svg" alt="Doctor" width={100} height={100} />
       </div>

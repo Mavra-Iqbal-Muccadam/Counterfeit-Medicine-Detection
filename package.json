@@ -9,25 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "formidable": "^3.5.2",
+    "mysql2": "^3.12.0",
     "next": "15.1.6",
     "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "tesseract.js": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@types/bn.js": "^5.1.6",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.0.8",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
-    "ethers": "^5.7.2",
     "hardhat": "^2.22.18",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^4.9.5"
+    "typescript": "^5"
   }
 }
