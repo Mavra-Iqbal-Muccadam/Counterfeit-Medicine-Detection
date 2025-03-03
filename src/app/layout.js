@@ -10,13 +10,9 @@ export default function RootLayout({ children }) {
         </header>
         
         <main>
-          {children} 
-          <p>thisis going to be my landing page </p>
+          {children}
         </main>
 
-        <footer>
-          <p>© 2025 Fake Medicine Detector</p>
-        </footer>
       </body>
     </html>
   );
