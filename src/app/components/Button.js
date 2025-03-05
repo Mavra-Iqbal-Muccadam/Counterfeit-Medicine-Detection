@@ -1,16 +1,13 @@
 "use client";
-import React from "react";
-import styles from "../styles/Button.module.css";
+import React from 'react';
+import Button from '@mui/material/Button';
 
-const Button = ({ text, type = "button", onClick }) => {
+const CustomButton = ({ text, type = "button", onClick }) => {
   return (
-    <button type={type} onClick={onClick} className={styles.btn}> {/* ✅ Use styles.btn */}
+    <Button variant="contained" type={type} onClick={onClick}>
       {text}
-    </button>
+    </Button>
   );
 };
 
-export default Button;
-
-
-
+export default CustomButton;
