@@ -1,14 +1,17 @@
 "use client";
-import React from "react";
-import styles from "../styles/InputField.module.css";
-  
+import React from 'react';
+import TextField from '@mui/material/TextField';
 
-const InputField = ({ name, label, type = "text", onChange, required = false }) => {
+const InputField = ({ label, type = "text", value, onChange }) => {
   return (
-    <div className={styles.inputField}>  {/* ✅ Correct CSS Module Application */}
-      <label className={styles.label}>{label}</label>
-      <input className={styles.input} type={type} name={name} onChange={onChange} required={required} />
-    </div>
+    <TextField
+      label={label}
+      type={type}
+      value={value}
+      onChange={onChange}
+      variant="outlined"
+      fullWidth
+    />
   );
 };
 

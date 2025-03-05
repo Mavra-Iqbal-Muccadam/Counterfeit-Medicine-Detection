@@ -10,10 +10,12 @@ const ManufacturerForm = () => {
     email: "",
     phone: "",
     website: "",
-    dateOfIssue: "", // User will enter manually
+    dateOfIssue: "",
     physicalAddress: "",
     walletAddress: "",
     certificationNumber: "",
+    certificationBytea: "", // Base64 encoded certificate
+
   });
 
   const [certification, setCertification] = useState(null);
@@ -22,7 +24,6 @@ const ManufacturerForm = () => {
   const [errors, setErrors] = useState({});
   const [privacyChecked, setPrivacyChecked] = useState(false);
 
-  // Handle Input Changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -31,6 +32,33 @@ const ManufacturerForm = () => {
       setPrivacyChecked(checked);
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    if (name === "licenceNo" || name === "phone") {
+      if (!/^\d*$/.test(value)) {
+        setErrors((prev) => ({
+          ...prev,
+          [name]: "❌ Only numbers are allowed!",
+        }));
+      }
+    }
+
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "❌ Please enter a valid email address!",
+        }));
+      }
+    }
+    if (name === "walletAddress") {
+      const walletRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!walletRegex.test(value)) {
+        setErrors((prev) => ({
+          ...prev,
+          walletAddress: "❌ Invalid wallet address! Please enter a valid Ethereum address.",
+        }));
+      }
     }
   };
 
@@ -50,23 +78,19 @@ const ManufacturerForm = () => {
         });
   
         const result = await response.json();
+        console.log("✅ Extracted Data:", result.extractedData); // Print extracted data
+  
+        
         if (response.ok) {
-          console.log("✅ Extracted Data from API:", result);
-          console.log("API Response Keys:", Object.keys(result));
-
-          const formatDate = (dateString) => {
-            const [day, month, year] = dateString.split("/");
-            return `${year}-${month}-${day}`; 
-          };
-
-          // 📝 Correctly map API response keys to state
           setFormData((prev) => ({
             ...prev,
-            name: result.manufacturer_name || "",
-            licenceNo: result.license_number || "",
-            certificationNumber: result.certificate_number || "",
-            physicalAddress: result.address || "",
-            dateOfIssue: result.date_of_issue ? formatDate(result.date_of_issue) : "", 
+            name: result.extractedData.manufacturer_name || "",
+            licenceNo: result.extractedData.license_number || "",
+            certificationNumber: result.extractedData.certificate_number || "",
+            physicalAddress: result.extractedData.address || "",
+            dateOfIssue: result.extractedData.date_of_issue || "", // Ensure it's correctly set
+            certificationBytea: result.certificationBytea || "", // Store Base64 PDF
+
           }));
         } else {
           alert(`Error: ${result.message}`);
@@ -77,40 +101,28 @@ const ManufacturerForm = () => {
       }
     }
   };
+  
 
-  // 📝 Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const formErrors = {};
-    if (!formData.name) formErrors.name = "Name is required!";
-    if (!formData.licenceNo) formErrors.licenceNo = "License Number is required!";
-    if (!formData.email) formErrors.email = "Email is required!";
-    if (!formData.phone) formErrors.phone = "Phone number is required!";
-    if (!formData.walletAddress) formErrors.walletAddress = "Wallet address is required!";
-    if (!formData.physicalAddress) formErrors.physicalAddress = "Physical address is required!";
-    if (!certification) formErrors.certification = "Please upload a certification file.";
-    if (!privacyChecked) formErrors.privacyChecked = "You must accept the privacy policy!";
-
-    setErrors(formErrors);
-    if (Object.keys(formErrors).length > 0) return;
-
     setIsSubmitting(true);
 
-    const finalData = new FormData();
-    Object.keys(formData).forEach((key) => finalData.append(key, formData[key]));
-    finalData.append("certification", certification);
+    if (!privacyChecked) {
+      alert("❌ You must agree to the privacy policy.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      console.log("📨 Submitting form...");
-      const response = await fetch("/api/certificateupload/uploadcertificate", {
+      const response = await fetch("/api/certificateupload/savedata", {
         method: "POST",
-        body: finalData,
+        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
       });
 
       const result = await response.json();
       if (response.ok) {
-        alert("✅ Your Application has been received and is under review!");
+        alert("✅ Your Application has been received!");
       } else {
         alert(`❌ Error: ${result.message}`);
       }
@@ -158,6 +170,15 @@ const ManufacturerForm = () => {
       <label className={styles.label}>Physical Address</label>
       <input name="physicalAddress" value={formData.physicalAddress} onChange={handleChange} className={styles.input} />
       {errors.physicalAddress && <p className={styles.error}>{errors.physicalAddress}</p>}
+      <label className={styles.label}>Website (Optional)</label>
+      <input
+        className={styles.input}
+        name="website"
+        type="url"
+        placeholder="Enter website URL"
+        value={formData.website}
+        onChange={handleChange}
+      />
 
       <label className={styles.label}>Wallet Address</label>
       <input name="walletAddress" value={formData.walletAddress} onChange={handleChange} className={styles.input} />

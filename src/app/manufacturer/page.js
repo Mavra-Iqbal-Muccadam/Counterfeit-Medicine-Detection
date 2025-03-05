@@ -1,12 +1,26 @@
 "use client";
-import ManufacturerForm from "../components/ManufacturerForm"; 
-import styles from "./page.module.css"; 
+import React from 'react';
+import ManufacturerForm from '../components/ManufacturerForm';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 
-export default function manufacturer() {
+const ManufacturerPage = () => {
   return (
-    <div className={styles.pageContainer}>
-      <h1 className={styles.title}>Register as a Manufacturer</h1>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+      }}
+    >
+      <Typography variant="h4" component="h1" sx={{ fontSize: '2rem', marginBottom: '2rem' }}>
+        Manufacturer Registration
+      </Typography>
       <ManufacturerForm />
-    </div>
+    </Box>
   );
 };
+
+export default ManufacturerPage;
