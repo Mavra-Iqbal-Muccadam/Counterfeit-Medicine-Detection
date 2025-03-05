@@ -1,4 +1,4 @@
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "../../../lib/supabaseClientservice";
 
 export default async function handler(req, res) {
   console.log("🚀 API called: /api/certificateupload/savedata");
@@ -25,7 +25,9 @@ export default async function handler(req, res) {
 
     if (!certificationBytea) {
       console.error("❌ certificationBytea is missing.");
-      return res.status(400).json({ message: "Missing certification file data" });
+      return res
+        .status(400)
+        .json({ message: "Missing certification file data" });
     }
 
     console.log("🔍 Converting Base64 to Binary...");
@@ -50,12 +52,16 @@ export default async function handler(req, res) {
 
     if (uploadError) {
       console.error("❌ Error uploading PDF to storage:", uploadError);
-      return res.status(500).json({ message: "Failed to upload PDF", error: uploadError });
+      return res
+        .status(500)
+        .json({ message: "Failed to upload PDF", error: uploadError });
     }
 
     console.log("✅ PDF uploaded successfully:", uploadData);
 
-    const { data: publicUrlData } = await supabase.storage.from(bucketName).getPublicUrl(fileName);
+    const { data: publicUrlData } = await supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
     const certificationUrl = publicUrlData?.publicUrl || null;
 
     console.log("🔗 Certification Public URL:", certificationUrl);
@@ -84,8 +90,9 @@ export default async function handler(req, res) {
 
     console.log("✅ Data saved successfully!", data);
 
-    return res.status(200).json({ message: "Data saved successfully!", data, certificationUrl });
-
+    return res
+      .status(200)
+      .json({ message: "Data saved successfully!", data, certificationUrl });
   } catch (error) {
     console.error("❌ Unexpected error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
