@@ -7,3 +7,12 @@ module.exports = {
     CONTRACT_ADDRESS: process.env.CONTRACT_ADDRESS,
   },
 };
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  compiler: {
+    styledComponents: true,
+  },
+};
+
+module.exports = nextConfig;

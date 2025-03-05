@@ -8,7 +8,7 @@ dotenv.config();
 
 export const config = {
   api: {
-    bodyParser: false, // Required for file uploads
+    bodyParser: false,
   },
 };
 
@@ -20,9 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 📥 Parse Uploaded File
-    const form = formidable(); // ✅ Correct Formidable v3+ syntax
-
+    const form = formidable();
     const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
@@ -34,64 +32,75 @@ export default async function handler(req, res) {
     const file = files.certification?.[0];
 
     if (!file) {
-      console.error("❌ No file uploaded.");
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // 📄 Extract Raw Text from PDF
+    console.log("🔍 Reading PDF file...");
+    const dataBuffer = await fs.promises.readFile(file.filepath);
+    console.log("📏 PDF file size:", dataBuffer.length, "bytes");
+
     console.log("🔍 Extracting text from PDF...");
-    const dataBuffer = fs.readFileSync(file.filepath);
     const pdfData = await pdfParse(dataBuffer);
     let extractedText = pdfData.text.trim();
 
-    console.log("📜 Extracted Text (Preview):", extractedText.substring(0, 500), "...");
-
     if (!extractedText) {
-      console.error("❌ Failed to extract text from PDF.");
       return res.status(400).json({ message: "Failed to extract text from PDF" });
     }
 
-    // 🔥 Send Extracted Text to Qwen API for Structured Extraction
     console.log("📡 Sending extracted text to Qwen AI...");
     const qwenResponse = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: "qwen/qwen-2-7b-instruct:free",
         messages: [
-          { 
-            role: "system", 
-            content: "You are an AI assistant trained to extract key details from a manufacturer certificate." 
+          {
+            role: "system",
+            content: "You are an AI assistant trained to extract key details from a manufacturer certificate.",
           },
           {
             role: "user",
-            content: `Extract the following details from this certificate in **valid JSON format** with keys in **snake_case**:
+            content: `Extract the following details in **valid JSON format**:
             - manufacturer_name
             - license_number
             - certificate_number
-            - date_of_issue (format: MM/DD/YYYY)
+            - date_of_issue (YYYY-MM-DD)
             - address
-        
+
             Return only the JSON object, **without markdown formatting**. Here is the extracted text:
-            ${extractedText}`
-          }
+            ${extractedText}`,
+          },
         ],
-        
-        max_tokens: 100,
+        max_tokens: 150,
       },
       {
         headers: {
-          "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
-    // ✅ Parse AI Response
     const structuredData = qwenResponse.data.choices[0]?.message?.content.trim();
-    console.log("✅ Extracted Structured Data from Qwen:", structuredData);
+    const cleanedJson = structuredData.replace(/```json|```/g, "").trim();
+    const jsonData = JSON.parse(cleanedJson);
 
-    // 📤 Send JSON Response to Frontend
-    return res.status(200).json(JSON.parse(structuredData));
+    // Fixing Date Format
+    if (jsonData.date_of_issue) {
+      const date = new Date(jsonData.date_of_issue);
+      if (!isNaN(date.getTime())) {
+        jsonData.date_of_issue = date.toISOString().split("T")[0]; // Convert to YYYY-MM-DD
+      }
+    }
+
+    // Convert PDF to Base64
+    const certificationBytea = dataBuffer.toString("base64");
+
+    console.log("📡 Returning extracted data and Base64 PDF...");
+    return res.status(200).json({
+      message: "Certificate processed successfully",
+      extractedData: jsonData,
+      certificationBytea, // Send as Base64
+    });
 
   } catch (error) {
     console.error("❌ Unexpected error:", error);
