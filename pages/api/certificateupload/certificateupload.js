@@ -1,188 +1,109 @@
-import { supabase } from "../../../lib/supabaseClient";
 import formidable from "formidable";
 import fs from "fs";
 import pdfParse from "pdf-parse";
-import Tesseract from "tesseract.js";
+import axios from "axios";
+import dotenv from "dotenv";
 
-/**
- * Extracts text from a PDF, using OCR if needed.
- * @param {string} pdfPath - Path to the PDF file
- * @returns {Object} Extracted certification number and full text
- */
-async function extractCertificationData(pdfPath) {
-  try {
-    // Read PDF as buffer and extract text
-    const dataBuffer = fs.readFileSync(pdfPath);
-    const data = await pdfParse(dataBuffer);
-    let fullText = data.text.trim();
+dotenv.config();
 
-    // If text extraction fails (e.g., scanned PDF), use Tesseract.js for OCR
-    if (!fullText) {
-      console.log("PDF appears to be scanned, using OCR...");
-      const { data: ocrData } = await Tesseract.recognize(pdfPath, "eng");
-      fullText = ocrData.text.trim();
-    }
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
-    console.log("Extracted PDF Text:", fullText);
-
-    // Define regex patterns to find certification numbers
-    const certPatterns = [
-      /(?:Certificate\s*No|Certification\s*Number|Cert\s*No)[:\s-]*([A-Za-z0-9-]{7,15})/i,
-      /(?:License\s*No|License\s*Number)[:\s-]*([A-Za-z0-9-]{7,15})/i
-    ];
-
-    let certificationNo = null;
-    for (const pattern of certPatterns) {
-      const match = fullText.match(pattern);
-      if (match && match[1]) {
-        certificationNo = match[1].trim();
-        break;
-      }
-    }
-
-    return {
-      certificationNo: certificationNo || "Not Found",
-      fullText: fullText,
-    };
-  } catch (error) {
-    console.error("Error extracting data from PDF:", error);
-    return null;
-  }
-}
-
-/**
- * Uploads the certificate to Supabase Storage
- * @param {Object} file - Uploaded file object
- * @param {string} licenceNo - Licence number used for naming
- * @returns {string|null} Path of the uploaded file in storage
- */
-async function uploadCertificate(file, licenceNo) {
-  try {
-    const fileStream = fs.createReadStream(file.filepath);
-    console.log("Uploading file to Supabase Storage...");
-
-    const { data, error } = await supabase.storage
-      .from("certification_pdf_storage")
-      .upload(`certificates/${licenceNo}.pdf`, fileStream, {
-        cacheControl: "3600",
-        upsert: true,
-        duplex: "half",
-      });
-
-    if (error) {
-      console.error("Upload Error:", error);
-      throw error;
-    }
-
-    console.log("File uploaded successfully:", data.path);
-    return data.path;
-  } catch (error) {
-    console.error("Upload Error:", error);
-    return null;
-  }
-}
-
-/**
- * API Handler for uploading certificates
- */
 export default async function handler(req, res) {
+  console.log("🚀 API called: /api/certificateupload/uploadcertificate");
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const form = formidable();
+  try {
+    const form = formidable();
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve([fields, files]);
+      });
+    });
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      console.error("Error parsing the form:", err);
-      return res.status(500).json({ message: "Error parsing the form" });
-    }
-
-    console.log("Parsed fields:", fields);
-    console.log("Parsed files:", files);
-
-    const { name, licenceNo, email, phone, physicalAddress, walletAddress, website, dateOfIssue } = fields;
+    console.log("✅ Form parsed successfully!");
     const file = files.certification?.[0];
 
-    if (!name || !licenceNo || !email || !phone || !physicalAddress || !walletAddress || !file || !dateOfIssue) {
-      console.error("Missing required fields or file.");
-      return res.status(400).json({ message: "Missing required fields or file" });
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Convert phone to an integer to prevent `BIGINT` errors
-    const phoneNumber = parseInt(phone, 10);
-    if (isNaN(phoneNumber)) {
-      return res.status(400).json({ message: "Invalid phone number format" });
+    console.log("🔍 Reading PDF file...");
+    const dataBuffer = await fs.promises.readFile(file.filepath);
+    console.log("📏 PDF file size:", dataBuffer.length, "bytes");
+
+    console.log("🔍 Extracting text from PDF...");
+    const pdfData = await pdfParse(dataBuffer);
+    let extractedText = pdfData.text.trim();
+
+    if (!extractedText) {
+      return res.status(400).json({ message: "Failed to extract text from PDF" });
     }
 
-    try {
-      // Step 1: Upload the file to Supabase Storage
-      console.log("Starting file upload...");
-      const filePath = await uploadCertificate(file, licenceNo);
-      if (!filePath) {
-        return res.status(500).json({ message: "Error uploading certificate" });
+    console.log("📡 Sending extracted text to Qwen AI...");
+    const qwenResponse = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "qwen/qwen-2-7b-instruct:free",
+        messages: [
+          {
+            role: "system",
+            content: "You are an AI assistant trained to extract key details from a manufacturer certificate.",
+          },
+          {
+            role: "user",
+            content: `Extract the following details in **valid JSON format**:
+            - manufacturer_name
+            - license_number
+            - certificate_number
+            - date_of_issue (YYYY-MM-DD)
+            - address
+
+            Return only the JSON object, **without markdown formatting**. Here is the extracted text:
+            ${extractedText}`,
+          },
+        ],
+        max_tokens: 150,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
       }
+    );
 
-      // Step 2: Extract certification data from the PDF
-      console.log("Extracting certification details...");
-      const extractedData = await extractCertificationData(file.filepath);
-      if (!extractedData) {
-        return res.status(400).json({ message: "Failed to extract certification details" });
+    const structuredData = qwenResponse.data.choices[0]?.message?.content.trim();
+    const cleanedJson = structuredData.replace(/```json|```/g, "").trim();
+    const jsonData = JSON.parse(cleanedJson);
+
+    // Fixing Date Format
+    if (jsonData.date_of_issue) {
+      const date = new Date(jsonData.date_of_issue);
+      if (!isNaN(date.getTime())) {
+        jsonData.date_of_issue = date.toISOString().split("T")[0]; // Convert to YYYY-MM-DD
       }
-
-      const { certificationNo, fullText } = extractedData;
-
-      // Step 3: Read file as binary for PostgreSQL storage
-      let certificationBinary;
-      try {
-        certificationBinary = fs.readFileSync(file.filepath);
-      } catch (error) {
-        return res.status(500).json({ message: "Error reading PDF file" });
-      }
-
-      // Step 4: Get public URL for the uploaded file
-      const { data: publicUrlData, error: urlError } = supabase.storage
-        .from("certification_pdf_storage")
-        .getPublicUrl(filePath);
-
-      if (urlError) {
-        return res.status(500).json({ message: "Error getting public URL" });
-      }
-
-      const certificationUrl = publicUrlData?.publicUrl || null;
-
-      // Step 5: Save manufacturer data to PostgreSQL
-      console.log("Inserting data into the manufacturers table...");
-      const { error: dbError } = await supabase
-        .from("manufacturers")
-        .insert([{
-          name,
-          licence_no: licenceNo,
-          email,
-          website_url: website || null,
-          phone: phoneNumber,
-          date_of_issue: dateOfIssue,
-          physical_address: physicalAddress,
-          wallet_address: walletAddress,
-          certification_url: certificationUrl,
-          certification_no: certificationNo,
-          certification_text: fullText, // Stores full extracted text
-          certification_bytea: certificationBinary,
-        }]);
-
-      if (dbError) {
-        return res.status(500).json({ message: "Error saving data to the database" });
-      }
-
-      // Success response
-      return res.status(200).json({
-        message: "File uploaded and data saved successfully",
-        certificationNo,
-        certificationUrl,
-      });
-    } catch (error) {
-      console.error("Unexpected error:", error);
-      return res.status(500).json({ message: "Internal Server Error" });
     }
-  });
+
+    // Convert PDF to Base64
+    const certificationBytea = dataBuffer.toString("base64");
+
+    console.log("📡 Returning extracted data and Base64 PDF...");
+    return res.status(200).json({
+      message: "Certificate processed successfully",
+      extractedData: jsonData,
+      certificationBytea, // Send as Base64
+    });
+
+  } catch (error) {
+    console.error("❌ Unexpected error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 }
