@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       website,
       probability,
-      message: `This website is ${probability}% likely to be a medicine manufacturer.`,
+      message: `${probability}%`,
     });
 
   } catch (error) {

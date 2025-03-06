@@ -13,7 +13,7 @@ export const config = {
 async function uploadJSONToPinata(jsonData) {
   try {
     console.log("🔍 Preparing JSON data for Pinata:", jsonData);
-    
+
     const formData = new FormData();
     formData.append("file", Buffer.from(JSON.stringify(jsonData)), {
       filename: "metadata.json",
@@ -32,8 +32,6 @@ async function uploadJSONToPinata(jsonData) {
       },
     });
 
-    console.log("📥 [DEBUG] Raw Pinata Response for JSON Upload:", response.data);
-
     console.log("✅ JSON Uploaded to Pinata. IPFS Hash:", response.data.IpfsHash);
     return response.data.IpfsHash;
   } catch (error) {
@@ -42,19 +40,25 @@ async function uploadJSONToPinata(jsonData) {
   }
 }
 
-// Function to upload PDF file to Pinata
-async function uploadPDFToPinata(fileBuffer) {
+// Function to fetch PDF from URL & upload it to Pinata
+async function uploadPDFFromURLToPinata(pdfUrl) {
   try {
-    console.log("🔍 Preparing PDF for Pinata...");
+    console.log("📥 Downloading PDF from URL:", pdfUrl);
 
+    // Fetch PDF from URL
+    const response = await axios.get(pdfUrl, { responseType: "arraybuffer" });
+
+    // Convert response data to Buffer
+    const pdfBuffer = Buffer.from(response.data);
+
+    console.log("🚀 Uploading PDF to Pinata...");
     const formData = new FormData();
-    formData.append("file", fileBuffer, { filename: "certification.pdf" });
+    formData.append("file", pdfBuffer, { filename: "certification.pdf" });
 
     formData.append("pinataMetadata", JSON.stringify({ name: "Certification Document" }));
     formData.append("pinataOptions", JSON.stringify({ cidVersion: 1 }));
 
-    console.log("🚀 Uploading PDF to Pinata...");
-    const response = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+    const pinataResponse = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
       headers: {
         "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
         pinata_api_key: process.env.PINATA_API_KEY,
@@ -62,10 +66,8 @@ async function uploadPDFToPinata(fileBuffer) {
       },
     });
 
-    console.log("📥 [DEBUG] Raw Pinata Response for PDF Upload:", response.data);
-
-    console.log("✅ PDF Uploaded to Pinata. IPFS Hash:", response.data.IpfsHash);
-    return response.data.IpfsHash;
+    console.log("✅ PDF Uploaded to Pinata. IPFS Hash:", pinataResponse.data.IpfsHash);
+    return pinataResponse.data.IpfsHash;
   } catch (error) {
     console.error("❌ Error Uploading PDF to Pinata:", error.response?.data || error.message);
     throw new Error("Failed to upload PDF to Pinata");
@@ -86,7 +88,7 @@ export default async function handler(req, res) {
     const form = new IncomingForm({ keepExtensions: true, multiples: false });
 
     // 🔍 Parse FormData Properly
-    const { fields, files } = await new Promise((resolve, reject) => {
+    const { fields } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) {
           console.error("❌ Error parsing form data:", err);
@@ -110,46 +112,46 @@ export default async function handler(req, res) {
       registration_date: fields.registration_date?.[0] || "",
       certifications: fields.certifications?.[0]?.trim() || "",
       website_url: fields.website_url?.[0] || "",
+      certification_url: fields.certification_url?.[0] || "", // New field for PDF URL
     };
 
     console.log("🔍 Final Manufacturer Data:", manufacturerData);
 
     // 🔍 Upload JSON Data to Pinata
-    let jsonUrl;
+    let jsonCid;
     try {
-      jsonUrl = await uploadJSONToPinata(manufacturerData);
-      console.log("✅ JSON Metadata Uploaded to IPFS:", jsonUrl);
+      jsonCid = await uploadJSONToPinata(manufacturerData);
+      console.log("✅ JSON Metadata Uploaded to IPFS:", jsonCid);
     } catch (error) {
       console.error("❌ Failed to upload JSON to Pinata.");
       return res.status(500).json({ error: "Failed to upload JSON to IPFS" });
     }
 
-    // 🔍 Read & Upload PDF (if exists)
-    let pdfUrl = null;
-    if (files.certification?.[0]?.filepath) {
+    // 🔍 Fetch & Upload Certification PDF to Pinata
+    let pdfCid = null;
+    if (manufacturerData.certification_url) {
       try {
-        console.log("📂 Reading PDF file:", files.certification[0].filepath);
-        const pdfBuffer = fs.readFileSync(files.certification[0].filepath);
-        pdfUrl = await uploadPDFToPinata(pdfBuffer);
-        console.log("✅ PDF Uploaded to IPFS:", pdfUrl);
+        console.log("📂 Fetching and Uploading PDF from URL...");
+        pdfCid = await uploadPDFFromURLToPinata(manufacturerData.certification_url);
+        console.log("✅ PDF Uploaded to IPFS:", pdfCid);
       } catch (error) {
         console.warn("⚠️ Failed to upload PDF, continuing without it.", error);
       }
     } else {
-      console.log("ℹ️ No PDF file provided.");
+      console.log("ℹ️ No certification URL provided.");
     }
 
     console.log("🎉 Successfully stored manufacturer data on IPFS!");
     
     // Debug: Log final response before sending
     console.log("📤 [DEBUG] Sending Response to Frontend:", {
-      ipfsHash: jsonUrl,
-      pdfHash: pdfUrl || "No PDF uploaded",
+      ipfsHash: jsonCid,
+      pdfHash: pdfCid || "No PDF uploaded",
     });
 
     return res.status(200).json({
-      ipfsHash: jsonUrl,  // Ensure this key exists
-      pdfHash: pdfUrl || "No PDF uploaded",
+      ipfsHash: jsonCid,  // Ensure this key exists
+      pdfHash: pdfCid || "No PDF uploaded",
     });
 
   } catch (error) {
