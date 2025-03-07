@@ -7,6 +7,7 @@ import {
   rejectManufacturer,
 } from "../../../lib/admindatafetch";
 import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import Typography from "@mui/material/Typography";
@@ -24,6 +25,14 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Image from "next/image";
+import axios from "axios";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
 
 const AdminPage = () => {
   const [activeSection, setActiveSection] = useState("pendingManufacturers");
@@ -32,7 +41,28 @@ const AdminPage = () => {
   const [pendingManufacturers, setPendingManufacturers] = useState([]);
   const [acceptedManufacturers, setAcceptedManufacturers] = useState([]);
   const [rejectedManufacturers, setRejectedManufacturers] = useState([]);
+  const [showWalletAddress, setShowWalletAddress] = useState(false); // State to toggle wallet address visibility
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false); // State for reject dialog
+  const [rejectComment, setRejectComment] = useState(""); // State for reject comment
+  const [authenticityScore, setAuthenticityScore] = useState(null);
 
+
+  const columnNameMapping = {
+    name: "Manufacturer Name",
+    physical_address: "Physical Address",
+    phone: "Phone Number",
+    licence_no: "License Number",
+    email: "Email Address",
+    wallet_address: "Wallet Address",
+    certification_url: "Certification PDF",
+    certification_no: "Certification Number",
+    website_url: "Website URL",
+    date_of_issue: "Date of Issue",
+    reg_date: "Registration Date",
+    status: "Status",
+    rejection_comments: "Comments", // Add this line
+
+  };
   // Fetch manufacturers on component mount
   useEffect(() => {
     const loadManufacturers = async () => {
@@ -59,35 +89,97 @@ const AdminPage = () => {
   const handleView = async (id) => {
     const data = await fetchManufacturerDetails(id);
     setSelectedManufacturer(data);
-  };
-
-  // Handle Accept button click
-  const handleAccept = async (id) => {
-    const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
-    if (manufacturer) {
-      // Update status in the database
-      const result = await acceptManufacturer(id);
-      if (result) {
-        // Update local state
-        setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
-        setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
-      }
+    setShowWalletAddress(false); // Reset wallet address visibility when viewing a new manufacturer
+  
+    // Check website authenticity if website URL exists
+    if (data.website_url) {
+      checkWebsiteAuthenticity(data.website_url);
+    } else {
+      setAuthenticityScore(0); // Set score to 0% if no website URL
     }
   };
 
-  // Handle Reject button click
-  const handleReject = async (id) => {
-    const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
-    if (manufacturer) {
-      // Update status in the database
-      const result = await rejectManufacturer(id);
-      if (result) {
-        // Update local state
-        setRejectedManufacturers((prev) => [...prev, { ...manufacturer, status: "rejected" }]);
-        setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
-      }
+  const handleAccept = async (manufacturer) => {
+    console.log("📌 handleAccept called with:", manufacturer);
+  
+    if (!manufacturer || !manufacturer.manufacturer_id) {
+      console.error("❌ Invalid manufacturer data - missing manufacturer_id:", manufacturer);
+      return;
+    }
+  
+    const result = await acceptManufacturer(manufacturer.manufacturer_id);
+  
+    if (result) {
+      console.log("✅ Manufacturer accepted:", result);
+      setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
+      setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== manufacturer.manufacturer_id));
+      setSelectedManufacturer(null); // Go back to the main table
+    } else {
+      console.error("❌ Failed to update manufacturer status");
     }
   };
+
+
+  const handleReject = async (manufacturer) => {
+    console.log("📌 handleReject called with:", manufacturer);
+  
+    if (!manufacturer || !manufacturer.manufacturer_id) {
+      console.error("❌ Invalid manufacturer data - missing manufacturer_id:", manufacturer);
+      return;
+    }
+  
+    // Set the selected manufacturer and open the reject dialog
+    setSelectedManufacturer(manufacturer);
+    setRejectDialogOpen(true);
+  };
+
+  // Handle Reject Dialog Submit
+  const handleRejectSubmit = async () => {
+    if (!selectedManufacturer) return;
+  
+    // Call the API to reject the manufacturer
+    const result = await rejectManufacturer(selectedManufacturer.manufacturer_id, rejectComment);
+  
+    if (result) {
+      console.log("✅ Manufacturer rejected:", result);
+  
+      // Update the rejected manufacturers list
+      setRejectedManufacturers((prev) => [
+        ...prev,
+        { ...selectedManufacturer, status: "rejected" },
+      ]);
+  
+      // Remove the manufacturer from the pending list
+      setPendingManufacturers((prev) =>
+        prev.filter((m) => m.manufacturer_id !== selectedManufacturer.manufacturer_id)
+      );
+  
+      // Close the reject dialog and reset the comment
+      setRejectDialogOpen(false);
+      setRejectComment("");
+  
+      // Go back to the main table
+      setSelectedManufacturer(null);
+    } else {
+      console.error("❌ Failed to update manufacturer status");
+    }
+  };
+
+
+  const checkWebsiteAuthenticity = async (websiteUrl) => {
+    try {
+      const response = await axios.post("/api/genai/authenticmedicinewebsite", {
+        website: websiteUrl,
+      });
+      const { probability } = response.data;
+      setAuthenticityScore(parseInt(probability, 10)); // Convert probability to a number
+    } catch (error) {
+      // Do not log the error to the console
+      setAuthenticityScore(0); // Set score to 0% on error
+    }
+  };
+
+  
 
   // Reset selected manufacturer when switching sections
   const handleListItemClick = (section) => {
@@ -101,11 +193,21 @@ const AdminPage = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
+  // Toggle wallet address visibility
+  const toggleWalletAddressVisibility = () => {
+    setShowWalletAddress((prev) => !prev);
+  };
+
   const adminDetails = {
     name: "Admin User",
     experience: "5 years",
     role: "Administrator",
   };
+
+
+
+
+
 
   return (
     <Box
@@ -286,22 +388,93 @@ const AdminPage = () => {
           </Typography>
 
           {/* Show View Table ONLY if selected */}
+          {/* Show View Table ONLY if selected */}
           {selectedManufacturer ? (
-            <TableContainer component={Paper}>
-              <Table
-                sx={{ minWidth: 650, border: "1px solid #ddd" }}
-                aria-label="simple table"
-              >
-                <TableBody>
-                  {Object.entries(selectedManufacturer).map(([key, value]) => (
-                    <TableRow key={key}>
-                      <TableCell sx={{ padding: "16px" }}>{key}</TableCell>
-                      <TableCell sx={{ padding: "16px" }}>{value}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+  <Box>
+    {/* Back Button */}
+    <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+      <Button
+        variant="outlined"
+        onClick={() => setSelectedManufacturer(null)} // Reset selected manufacturer
+        sx={{ color: "white", borderColor: "white" }}
+      >
+        Back
+      </Button>
+    </Box>
+
+    {/* Details Table */}
+    <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 650, border: "1px solid #ddd" }} aria-label="simple table">
+        <TableBody>
+          {Object.entries(selectedManufacturer).map(([key, value]) => {
+            // Skip rendering the row if the key is "manufacturer_id" or "wallet_address"
+            if (key === "manufacturer_id" || key === "wallet_address") return null;
+
+            // Skip rendering the "rejection_comments" row if the manufacturer is not rejected
+            if (key === "rejection_comments" && selectedManufacturer.status !== "rejected") return null;
+
+            return (
+              <TableRow key={key}>
+                <TableCell sx={{ padding: "16px" }}>
+                  {columnNameMapping[key] || key} {/* Use mapped name or fallback to raw key */}
+                </TableCell>
+                <TableCell sx={{ padding: "16px" }}>
+                  {key === "website_url" ? (
+                    value ? (
+                      <a
+                        href={value.startsWith("https") ? value : `https://${value}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#016A70", textDecoration: "underline" }}
+                      >
+                        {value}
+                      </a>
+                    ) : (
+                      "N/A"
+                    )
+                  ) : key === "certification_url" ? (
+                    <Button onClick={() => window.open(value, "_blank")} sx={{ color: "#016A70" }}>
+                      View
+                    </Button>
+                  ) : key === "rejection_comments" ? (
+                    value.length > 0 ? (
+                      <ul>
+                        {value.map((comment, index) => (
+                          <li key={index}>{comment.comments}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "No comments"
+                    )
+                  ) : (
+                    value
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {/* Add Website Authenticity Row */}
+          <TableRow>
+            <TableCell sx={{ padding: "16px" }}>Website Authenticity</TableCell>
+            <TableCell sx={{ padding: "16px" }}>
+              {authenticityScore !== null ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={authenticityScore}
+                    sx={{ width: "100%", height: 10, borderRadius: 5 }}
+                  />
+                  <Typography variant="body2">{authenticityScore}%</Typography>
+                </Box>
+              ) : (
+                "N/A"
+              )}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  </Box>
           ) : (
             <TableContainer component={Paper}>
               <Table
@@ -360,7 +533,10 @@ const AdminPage = () => {
                     : pendingManufacturers
                   ).length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: "center", color: "#016A70" }}>
+                      <TableCell
+                        colSpan={4}
+                        sx={{ textAlign: "center", color: "#016A70" }}
+                      >
                         No manufacturers found.
                       </TableCell>
                     </TableRow>
@@ -386,29 +562,13 @@ const AdminPage = () => {
                         </TableCell>
                         <TableCell sx={{ padding: "16px" }}>
                           <Button
-                            onClick={() => handleView(manufacturer.manufacturer_id)}
+                            onClick={() =>
+                              handleView(manufacturer.manufacturer_id)
+                            }
                             sx={{ color: "#016A70" }}
                           >
                             View
                           </Button>
-                          {activeSection === "pendingManufacturers" && (
-                            <>
-                              <Button
-                                size="small"
-                                onClick={() => handleAccept(manufacturer.manufacturer_id)}
-                                sx={{ color: "#016A70" }}
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                size="small"
-                                onClick={() => handleReject(manufacturer.manufacturer_id)}
-                                sx={{ color: "#016A70" }}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
                         </TableCell>
                       </TableRow>
                     ))
@@ -417,8 +577,61 @@ const AdminPage = () => {
               </Table>
             </TableContainer>
           )}
+           {selectedManufacturer && selectedManufacturer.status === "pending" && (
+              <Box sx={{ textAlign: "center", padding: "16px" }}>
+                <Button
+                  size="small"
+                  onClick={() => handleAccept(selectedManufacturer)}
+                  sx={{ color: "white", mr: 2 }}
+                >
+                  Accept
+                </Button>
+                {/* <Button
+                  size="small"
+                  onClick={() => handleAccept(
+                    manufacturer.manufacturer_id, 
+                    setAcceptedManufacturers, 
+                    setPendingManufacturers, 
+                    manufacturer // Pass the full manufacturer object
+                  )}
+                  sx={{ color: "#016A70" }}
+                >
+                  Accept
+                </Button> */}
+                <Button
+                  size="small"
+                  onClick={() => handleReject(selectedManufacturer)}
+                  sx={{ color: "white" }}
+                >
+                  Reject
+                </Button>
+              </Box>
+            )}
         </Box>
       </Box>
+
+
+      {/* Reject Dialog */}
+      <Dialog open={rejectDialogOpen} onClose={() => setRejectDialogOpen(false)}>
+        <DialogTitle>Add Rejection Comment</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Comment (Optional)"
+            fullWidth
+            variant="outlined"
+            value={rejectComment}
+            onChange={(e) => setRejectComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRejectDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleRejectSubmit} color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
