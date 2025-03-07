@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     console.log(`📄 Extracted Content: ${pageContent.substring(0, 500)}...`); // Debug
 
     // 🔥 Send Content to Qwen AI (via OpenRouter API)
-    const prompt = `Analyze this website content and determine the probability (in percentage) that this website belongs to a legitimate medicine manufacturer. Only return a percentage value as an integer between 0 and 100. Do not include any words, just the number. Content: ${pageContent}`;
+    const prompt = `Analyze this website content and determine the probability (in percentage) that this website belongs to a legitimate medicine manufacturer. Only return a percentage value as an integer between 0 and 100. Do not include any words, just the number. Content: ${pageContent} `;
 
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -73,7 +73,11 @@ export default async function handler(req, res) {
     res.status(200).json({
       website,
       probability,
+<<<<<<< HEAD
       message: `${probability}%`,
+=======
+      message:` ${probability}%`, 
+>>>>>>> mavra
     });
 
   } catch (error) {

@@ -41,7 +41,11 @@
 //     console.log("📏 Binary Buffer Size:", binaryBuffer.length, "bytes");
 
 //     const bucketName = "certification_pdf_storage";
+<<<<<<< HEAD
 //     const fileName = certificate_${Date.now()}.pdf;
+=======
+//     const fileName = `certificate_${Date.now()}.pdf`;
+>>>>>>> mavra
 
 //     console.log("📤 Uploading PDF to Supabase Storage...");
 //     const { data: uploadData, error: uploadError } = await supabase.storage
@@ -190,7 +194,14 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error("❌ Error inserting data into DB:", error);
-      return res.status(500).json({ message: "Database error", error });
+
+      // Handle duplicate key error
+      if (error.code === "23505") {
+        return res.status(400).json({ message: "This user already exists." });
+      }
+
+      // Handle other database errors
+      return res.status(500).json({ message: "Error registering user." });
     }
 
     console.log("✅ Data saved successfully!", data);

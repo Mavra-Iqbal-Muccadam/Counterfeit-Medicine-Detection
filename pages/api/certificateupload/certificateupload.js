@@ -35,6 +35,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    // Validate file type
+    if (file.mimetype !== "application/pdf") {
+      return res.status(400).json({ message: "Please upload a valid PDF file." });
+    }
+
     console.log("🔍 Reading PDF file...");
     const dataBuffer = await fs.promises.readFile(file.filepath);
     console.log("📏 PDF file size:", dataBuffer.length, "bytes");
@@ -101,7 +106,6 @@ export default async function handler(req, res) {
       extractedData: jsonData,
       certificationBytea, // Send as Base64
     });
-
   } catch (error) {
     console.error("❌ Unexpected error:", error);
     return res.status(500).json({ message: "Internal Server Error" });
