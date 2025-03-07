@@ -61,7 +61,8 @@ const Input = styled.input`
   border-radius: 5px;
   font-size: 14px;
   box-sizing: border-box;
-  
+  color: #000; /* Set text color to black */
+
   &:focus {
     outline: none;
     border: 1px solid #2b6777;
