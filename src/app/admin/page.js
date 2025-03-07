@@ -1,11 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import {
-  fetchManufacturers,
-  fetchManufacturerDetails,
-  acceptManufacturer,
-  rejectManufacturer,
-} from "../../../lib/admindatafetch";
+import React, { useState } from "react";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,74 +20,20 @@ import Button from "@mui/material/Button";
 import Image from "next/image";
 
 const AdminPage = () => {
-  const [activeSection, setActiveSection] = useState("pendingManufacturers");
+  const [activeSection, setActiveSection] = useState("pendingUsers");
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [pendingManufacturers, setPendingManufacturers] = useState([]);
-  const [acceptedManufacturers, setAcceptedManufacturers] = useState([]);
-  const [rejectedManufacturers, setRejectedManufacturers] = useState([]);
 
-  // Fetch manufacturers on component mount
-  useEffect(() => {
-    const loadManufacturers = async () => {
-      const data = await fetchManufacturers();
-      console.log("Data from fetchManufacturers:", data); // Log the fetched data
-
-      const pending = data.filter((m) => m.status === "pending");
-      const accepted = data.filter((m) => m.status === "accepted");
-      const rejected = data.filter((m) => m.status === "rejected");
-
-      console.log("Pending Manufacturers:", pending);
-      console.log("Accepted Manufacturers:", accepted);
-      console.log("Rejected Manufacturers:", rejected);
-
-      setPendingManufacturers(pending);
-      setAcceptedManufacturers(accepted);
-      setRejectedManufacturers(rejected);
-    };
-
-    loadManufacturers();
-  }, []);
-
-  // Handle View button click
-  const handleView = async (id) => {
-    const data = await fetchManufacturerDetails(id);
-    setSelectedManufacturer(data);
-  };
-
-  // Handle Accept button click
-  const handleAccept = async (id) => {
-    const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
-    if (manufacturer) {
-      // Update status in the database
-      const result = await acceptManufacturer(id);
-      if (result) {
-        // Update local state
-        setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
-        setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
-      }
-    }
-  };
-
-  // Handle Reject button click
-  const handleReject = async (id) => {
-    const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
-    if (manufacturer) {
-      // Update status in the database
-      const result = await rejectManufacturer(id);
-      if (result) {
-        // Update local state
-        setRejectedManufacturers((prev) => [...prev, { ...manufacturer, status: "rejected" }]);
-        setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
-      }
-    }
-  };
-
-  // Reset selected manufacturer when switching sections
+  // ✅ Reset selected manufacturer when switching sections
   const handleListItemClick = (section) => {
     setActiveSection(section);
     setSelectedManufacturer(null); // Reset view details when switching sections
     setSidebarVisible(false); // Close sidebar after selection
+  };
+  const adminDetails = {
+    name: "Admin User",
+    experience: "5 years",
+    role: "Administrator",
   };
 
   // Toggle Sidebar visibility
@@ -101,21 +41,46 @@ const AdminPage = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
-  const adminDetails = {
-    name: "Admin User",
-    experience: "5 years",
-    role: "Administrator",
+  // Handle clicking "View" button
+  const handleView = (manufacturer) => {
+    setSelectedManufacturer({
+      id: manufacturer.id,
+      name: manufacturer.name,
+      licenseNo: "12345",
+      email: "test@example.com",
+      phone: "123-456-7890",
+      website: "www.example.com",
+      address: "123 Main St",
+      walletAddress: "0xAbCdEfGhIjKlMnOpQrStUvWxYz",
+      certificationNumber: "CERT-9876",
+    });
   };
 
+  // Data for tables
+  const pendingUsers = [
+    { id: 3, name: 'Ali', status: 'Pending' },
+    { id: 4, name: 'Hussain', status: 'Pending' },
+    { id: 5, name: 'Aoun', status: 'Pending' },
+    { id: 6, name: 'Mustufa', status: 'Pending' },
+    { id: 7, name: 'Irtiza', status: 'Pending' },
+    { id: 8, name: 'Aizaz', status: 'Pending' },
+    { id: 9, name: 'Abbas', status: 'Pending' },
+    { id: 10, name: 'Husnain', status: 'Pending' },
+  ];
+
+  const acceptedManufacturers = [
+    { id: 11, name: "Manufacturer C", status: "Accepted" },
+    { id: 12, name: "Manufacturer D", status: "Accepted" },
+  ];
+
+  const rejectedManufacturers = [
+    { id: 13, name: "Manufacturer E", status: "Rejected" },
+    { id: 14, name: "Manufacturer F", status: "Rejected" },
+  ];
+
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        fontFamily: "sans-serif",
-      }}
-    >
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "sans-serif" }}>
+      
       {/* Navbar */}
       <Box
         sx={{
@@ -158,9 +123,7 @@ const AdminPage = () => {
         {/* Right Side: Logo & Website Name */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Image src="/healthcare (1).png" alt="Logo" width={50} height={50} />
-          <Typography variant="h6" sx={{ ml: 1 }}>
-            MediCare
-          </Typography>
+          <Typography variant="h6" sx={{ ml: 1 }}>MediCare</Typography>
         </Box>
       </Box>
 
@@ -176,9 +139,7 @@ const AdminPage = () => {
           borderRight: "1px solid #dee2e6",
           transition: "left 0.3s ease-in-out",
           zIndex: 1400,
-          boxShadow: sidebarVisible
-            ? "2px 0px 10px rgba(0, 0, 0, 0.2)"
-            : "none",
+          boxShadow: sidebarVisible ? "2px 0px 10px rgba(0, 0, 0, 0.2)" : "none",
           borderRadius: "10px",
           overflow: "hidden",
         }}
@@ -194,77 +155,36 @@ const AdminPage = () => {
         </IconButton>
 
         {/* Sidebar Content */}
-        <Typography
-          variant="h6"
-          sx={{ p: 2, fontWeight: "bold", color: "#016A70" }}
-        >
-          Admin Panel
-        </Typography>
+        <Typography variant="h6" sx={{ p: 2, fontWeight: "bold", color: "#016A70" }}>Admin Panel</Typography>
         <List>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => handleListItemClick("acceptedManufacturers")}
-              sx={{ "&:hover": { bgcolor: "#B2EBF2" } }}
-            >
+            <ListItemButton onClick={() => handleListItemClick("acceptedManufacturers")} sx={{ '&:hover': { bgcolor: '#B2EBF2' } }}>
               <ListItemText primary="Accepted Manufacturers" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => handleListItemClick("rejectedManufacturers")}
-              sx={{ "&:hover": { bgcolor: "#B2EBF2" } }}
-            >
+            <ListItemButton onClick={() => handleListItemClick("rejectedManufacturers")} sx={{ '&:hover': { bgcolor: '#B2EBF2' } }}>
               <ListItemText primary="Rejected Manufacturers" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => handleListItemClick("pendingManufacturers")}
-              sx={{ "&:hover": { bgcolor: "#B2EBF2" } }}
-            >
-              <ListItemText primary="Pending Manufacturers" />
+            <ListItemButton onClick={() => handleListItemClick("pendingUsers")} sx={{ '&:hover': { bgcolor: '#B2EBF2' } }}>
+              <ListItemText primary="Pending Users" />
             </ListItemButton>
           </ListItem>
         </List>
       </Box>
 
       {/* Main Content */}
-      <Box
-        sx={{
-          flex: 1,
-          padding: "80px 20px 20px",
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "20px",
-        }}
-      >
+      <Box sx={{ flex: 1, padding: "80px 20px 20px", display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
+
         {/* Admin Details Section */}
-        <Box
-          sx={{
-            bgcolor: "#E0F7FA",
-            padding: "15px",
-            borderRadius: "8px",
-            display: "flex",
-            height: "150px",
-            border: "1px solid #81D4FA",
-          }}
-        >
+        <Box sx={{ bgcolor: "#E0F7FA", padding: "15px", borderRadius: "8px", display: "flex", height: "150px", border: "1px solid #81D4FA" }}>
           <Box sx={{ width: "200px", mr: 2 }}>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: "bold", color: "#1E88E5" }}
-            >
-              Admin Details
-            </Typography>
-            <Typography variant="body1" color="#1E88E5">
-              Name: {adminDetails.name}
-            </Typography>
-            <Typography variant="body1" color="#1E88E5">
-              Experience: {adminDetails.experience}
-            </Typography>
-            <Typography variant="body1" color="#1E88E5">
-              Role: {adminDetails.role}
-            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1E88E5" }}>Admin Details</Typography>
+            <Typography variant="body1" color="#1E88E5">Name: {adminDetails.name}</Typography>
+            <Typography variant="body1" color="#1E88E5">Experience: {adminDetails.experience}</Typography>
+            <Typography variant="body1" color="#1E88E5">Role: {adminDetails.role}</Typography>
           </Box>
           <Image
             src="/LALA.GPG.jpg"
@@ -277,26 +197,23 @@ const AdminPage = () => {
 
         {/* Table Section */}
         <Box>
-          <Typography variant="h5" sx={{ mb: 2, color: "#016A70" }}>
+            <Typography variant="h5" sx={{ mb: 2, color: "#016A70" }}>
             {activeSection === "acceptedManufacturers"
               ? "Accepted Manufacturers"
               : activeSection === "rejectedManufacturers"
-              ? "Rejected Manufacturers"
-              : "Pending Manufacturers"}
+                ? "Rejected Manufacturers"
+                : "Pending Users"}
           </Typography>
 
           {/* Show View Table ONLY if selected */}
           {selectedManufacturer ? (
             <TableContainer component={Paper}>
-              <Table
-                sx={{ minWidth: 650, border: "1px solid #ddd" }}
-                aria-label="simple table"
-              >
+              <Table sx={{ minWidth: 650, border: '1px solid #ddd' }} aria-label="simple table">
                 <TableBody>
                   {Object.entries(selectedManufacturer).map(([key, value]) => (
                     <TableRow key={key}>
-                      <TableCell sx={{ padding: "16px" }}>{key}</TableCell>
-                      <TableCell sx={{ padding: "16px" }}>{value}</TableCell>
+                      <TableCell sx={{ padding: '16px' }}>{key}</TableCell>
+                      <TableCell sx={{ padding: '16px' }}>{value}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -304,115 +221,33 @@ const AdminPage = () => {
             </TableContainer>
           ) : (
             <TableContainer component={Paper}>
-              <Table
-                sx={{
-                  minWidth: 650,
-                  border: "1px solid #016A70",
-                  color: "#016A70",
-                }}
-                aria-label="simple table"
-              >
-                <TableHead sx={{ bgcolor: "#016A70" }}>
+              <Table sx={{ minWidth: 650, border: '1px solid #016A70', color: "#016A70" }} aria-label="simple table">
+                <TableHead sx={{ bgcolor: '#016A70' }}>
                   <TableRow>
-                    <TableCell
-                      sx={{
-                        padding: "16px",
-                        color: "white",
-                        borderBottom: "1px solid white",
-                      }}
-                    >
-                      ID
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        padding: "16px",
-                        color: "white",
-                        borderBottom: "1px solid white",
-                      }}
-                    >
-                      Name
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        padding: "16px",
-                        color: "white",
-                        borderBottom: "1px solid white",
-                      }}
-                    >
-                      Status
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        padding: "16px",
-                        color: "white",
-                        borderBottom: "1px solid white",
-                      }}
-                    >
-                      Action
-                    </TableCell>
+                    <TableCell sx={{ padding: '16px', color: "white", borderBottom: '1px solid white' }}>ID</TableCell>
+                    <TableCell sx={{ padding: '16px', color: "white", borderBottom: '1px solid white' }}>Name</TableCell>
+                    <TableCell sx={{ padding: '16px', color: "white", borderBottom: '1px solid white' }}>Status</TableCell>
+                    <TableCell sx={{ padding: '16px', color: "white", borderBottom: '1px solid white' }}>Action</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {(activeSection === "acceptedManufacturers"
                     ? acceptedManufacturers
                     : activeSection === "rejectedManufacturers"
-                    ? rejectedManufacturers
-                    : pendingManufacturers
-                  ).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: "center", color: "#016A70" }}>
-                        No manufacturers found.
+                      ? rejectedManufacturers
+                      : pendingUsers
+                  ).map((row, index) => (
+                    <TableRow key={row.id} sx={{ '&:nth-of-type(odd)': { bgcolor: '#f9f9f9' } }}>
+                      <TableCell sx={{ padding: '16px', color: "#016A70" }}>{row.id}</TableCell>
+                      <TableCell sx={{ padding: '16px', color: "#016A70" }}>{row.name}</TableCell>
+                      <TableCell sx={{ padding: '16px', color: "#016A70" }}>{row.status}</TableCell>
+                      <TableCell sx={{ padding: '16px' }}>
+                        <Button onClick={() => handleView(row)}  sx={{ color: "#016A70" }}>View</Button>
+                        <Button size="small"  sx={{ color: "#016A70" }}>Accept</Button>
+                        <Button size="small" sx={{ color: "#016A70" }}>Reject</Button>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    (activeSection === "acceptedManufacturers"
-                      ? acceptedManufacturers
-                      : activeSection === "rejectedManufacturers"
-                      ? rejectedManufacturers
-                      : pendingManufacturers
-                    ).map((manufacturer) => (
-                      <TableRow
-                        key={manufacturer.manufacturer_id}
-                        sx={{ "&:nth-of-type(odd)": { bgcolor: "#f9f9f9" } }}
-                      >
-                        <TableCell sx={{ padding: "16px", color: "#016A70" }}>
-                          {manufacturer.manufacturer_id}
-                        </TableCell>
-                        <TableCell sx={{ padding: "16px", color: "#016A70" }}>
-                          {manufacturer.name}
-                        </TableCell>
-                        <TableCell sx={{ padding: "16px", color: "#016A70" }}>
-                          {manufacturer.status}
-                        </TableCell>
-                        <TableCell sx={{ padding: "16px" }}>
-                          <Button
-                            onClick={() => handleView(manufacturer.manufacturer_id)}
-                            sx={{ color: "#016A70" }}
-                          >
-                            View
-                          </Button>
-                          {activeSection === "pendingManufacturers" && (
-                            <>
-                              <Button
-                                size="small"
-                                onClick={() => handleAccept(manufacturer.manufacturer_id)}
-                                sx={{ color: "#016A70" }}
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                size="small"
-                                onClick={() => handleReject(manufacturer.manufacturer_id)}
-                                sx={{ color: "#016A70" }}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -421,6 +256,6 @@ const AdminPage = () => {
       </Box>
     </Box>
   );
-};
+}
 
 export default AdminPage;
