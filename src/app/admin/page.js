@@ -24,6 +24,11 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
 import Image from "next/image";
+import handleAccept from '../blockchain/handleaccept'
+
+
+
+
 
 const AdminPage = () => {
   const [activeSection, setActiveSection] = useState("pendingManufacturers");
@@ -61,19 +66,43 @@ const AdminPage = () => {
     setSelectedManufacturer(data);
   };
 
-  // Handle Accept button click
-  const handleAccept = async (id) => {
-    const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
-    if (manufacturer) {
-      // Update status in the database
-      const result = await acceptManufacturer(id);
-      if (result) {
-        // Update local state
-        setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
-        setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
-      }
-    }
+
+  const handleAcceptClick = async (id) => {
+    await handleAccept(id, setAcceptedManufacturers, setPendingManufacturers);
   };
+
+  // Handle Accept button click
+  // const handleAccept = async (id) => {
+  //   const manufacturer = pendingManufacturers.find((m) => m.manufacturer_id === id);
+  //   if (manufacturer) {
+  //     // Update status in the database
+  //     const result = await acceptManufacturer(id);
+  //     if (result) {
+  //       // Update local state
+  //       setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
+  //       setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== id));
+  //     }
+  //   }
+  // };
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // Handle Reject button click
   const handleReject = async (id) => {
@@ -394,12 +423,17 @@ const AdminPage = () => {
                           {activeSection === "pendingManufacturers" && (
                             <>
                               <Button
-                                size="small"
-                                onClick={() => handleAccept(manufacturer.manufacturer_id)}
-                                sx={{ color: "#016A70" }}
-                              >
-                                Accept
-                              </Button>
+  size="small"
+  onClick={() => handleAccept(
+    manufacturer.manufacturer_id, 
+    setAcceptedManufacturers, 
+    setPendingManufacturers, 
+    manufacturer // Pass the full manufacturer object
+  )}
+  sx={{ color: "#016A70" }}
+>
+  Accept
+</Button>
                               <Button
                                 size="small"
                                 onClick={() => handleReject(manufacturer.manufacturer_id)}

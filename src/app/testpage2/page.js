@@ -1,105 +1,80 @@
 "use client";
-import { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { connectMetaMask } from "../../../utils/handleconnection"; // Import fixed function
+import React, { useState } from "react";
+import { getApprovedManufacturers } from "../blockchain/retrievefromblockchain";
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
-const rawAbi = process.env.NEXT_PUBLIC_CONTRACT_ABI;
-const PROVIDER_URL = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL;
-
-console.log("Raw ABI from environment:", rawAbi);
-
-let ABI;
-try {
-  ABI = JSON.parse(rawAbi);
-  console.log("Parsed ABI:", ABI);
-} catch (error) {
-  console.error("Error parsing ABI JSON:", error);
-  ABI = [];
-}
-
-async function fetchAllManufacturers(provider) {
-  if (!provider) {
-    console.error("❌ Ethereum provider not available. Ensure MetaMask is connected.");
-    return { approvedList: [], pendingList: [], rejectedList: [] };
-  }
-
-  console.log("Using Ethereum provider:", provider);
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-  console.log("Contract initialized at:", CONTRACT_ADDRESS);
-
+// 🔹 Function to fetch JSON data from IPFS
+const fetchIPFSData = async (cid) => {
   try {
-    console.log("Fetching all manufacturers' data...");
-    const [users, hashes, statuses] = await contract.getAllHashesWithStatus();
-    console.log("Raw blockchain response:", { users, hashes, statuses });
-
-    const approvedList = [], pendingList = [], rejectedList = [];
-    for (let i = 0; i < users.length; i++) {
-      const entry = { address: users[i], hash: hashes[i] };
-      if (statuses[i] === 1) approvedList.push(entry);
-      else if (statuses[i] === 0) pendingList.push(entry);
-      else rejectedList.push(entry);
-    }
-
-    console.log("Processed data:", { approvedList, pendingList, rejectedList });
-    return { approvedList, pendingList, rejectedList };
+    const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
+    if (!response.ok) throw new Error("Failed to fetch IPFS data");
+    return await response.json(); // 🔹 Parse JSON data
   } catch (error) {
-    console.error("Error fetching manufacturers:", error);
-    return { approvedList: [], pendingList: [], rejectedList: [] };
+    console.error(`❌ Error fetching IPFS data for CID ${cid}:`, error);
+    return null; // Return null if fetch fails
   }
-}
+};
 
-export default function ManufacturerIPFS() {
-  const [approved, setApproved] = useState([]);
-  const [pending, setPending] = useState([]);
-  const [rejected, setRejected] = useState([]);
-  const [provider, setProvider] = useState(null);
+const ChainPage = () => {
+  const [manufacturers, setManufacturers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    async function initializeConnection() {
-      const ethereumProvider = await connectMetaMask();
-      if (ethereumProvider) {
-        setProvider(ethereumProvider);
-        const { approvedList, pendingList, rejectedList } = await fetchAllManufacturers(ethereumProvider);
-        setApproved(approvedList);
-        setPending(pendingList);
-        setRejected(rejectedList);
-      }
-    }
-    initializeConnection();
-  }, []);
+  const fetchManufacturers = async () => {
+    setLoading(true);
+    const data = await getApprovedManufacturers();
+
+    // 🔹 Fetch real data from IPFS for each manufacturer
+    const enrichedManufacturers = await Promise.all(
+      data.map(async (m) => {
+        const ipfsData = await fetchIPFSData(m.jsonCID); // Fetch from IPFS
+        return {
+          ...m,
+          ipfsData, // 🔹 Add extracted data
+        };
+      })
+    );
+
+    setManufacturers(enrichedManufacturers);
+    setLoading(false);
+  };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <div>
-        <h2>Approved</h2>
-        {approved.map((item, index) => (
-          <div key={index} style={{ marginBottom: "10px" }}>
-            <p><strong>Address:</strong> {item.address}</p>
-            <p><strong>IPFS Hash:</strong> <a href={`https://ipfs.io/ipfs/${item.hash}`} target="_blank" rel="noopener noreferrer">View</a></p>
-          </div>
-        ))}
-      </div>
+    <div className="p-5">
+      <h1 className="text-2xl font-bold mb-4">Approved Manufacturers</h1>
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded-md"
+        onClick={fetchManufacturers}
+        disabled={loading}
+      >
+        {loading ? "Fetching..." : "Fetch Manufacturers"}
+      </button>
 
-      <div>
-        <h2>Pending</h2>
-        {pending.map((item, index) => (
-          <div key={index} style={{ marginBottom: "10px" }}>
-            <p><strong>Address:</strong> {item.address}</p>
-            <p><strong>IPFS Hash:</strong> <a href={`https://ipfs.io/ipfs/${item.hash}`} target="_blank" rel="noopener noreferrer">View</a></p>
-          </div>
-        ))}
-      </div>
-
-      <div>
-        <h2>Rejected</h2>
-        {rejected.map((item, index) => (
-          <div key={index} style={{ marginBottom: "10px" }}>
-            <p><strong>Address:</strong> {item.address}</p>
-            <p><strong>IPFS Hash:</strong> <a href={`https://ipfs.io/ipfs/${item.hash}`} target="_blank" rel="noopener noreferrer">View</a></p>
-          </div>
-        ))}
-      </div>
+      <ul className="mt-4">
+        {manufacturers.length > 0 ? (
+          manufacturers.map((m, index) => (
+            <li key={index} className="p-4 border rounded-md my-2 shadow">
+              <p><strong>Wallet:</strong> {m.wallet}</p>
+              <p><strong>JSON CID:</strong> {m.jsonCID}</p>
+              <p><strong>PDF CID:</strong> <a href={`https://ipfs.io/ipfs/${m.pdfCID}`} target="_blank" className="text-blue-500">View PDF</a></p>
+              <p><strong>Approved:</strong> {m.isApproved ? "✅" : "❌"}</p>
+              
+              {m.ipfsData ? (
+                <div className="mt-2">
+                  <p><strong>Company Name:</strong> {m.ipfsData.name || "N/A"}</p>
+                  <p><strong>Location:</strong> {m.ipfsData.location || "N/A"}</p>
+                  <p><strong>Product:</strong> {m.ipfsData.product || "N/A"}</p>
+                  <p><strong>Website:</strong> <a href={m.ipfsData.website} target="_blank" className="text-blue-500">{m.ipfsData.website}</a></p>
+                </div>
+              ) : (
+                <p className="text-red-500 mt-2">⚠ Unable to load IPFS data.</p>
+              )}
+            </li>
+          ))
+        ) : (
+          <p>No approved manufacturers found.</p>
+        )}
+      </ul>
     </div>
   );
-}
+};
+
+export default ChainPage;
