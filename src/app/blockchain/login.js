@@ -35,7 +35,7 @@ export async function loginWithMetaMask() {
       if (exists) {
         return { success: true, message: "✅ Login successful!", wallet: userAddress };
       } else {
-        return { success: false, message: "❌ Manufacturer not found in the system." };
+        return { success: false, message: "❌ Login Failed" };
       }
     } catch (error) {
       console.error("❌ Error logging in with MetaMask:", error);
