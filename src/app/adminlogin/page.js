@@ -92,7 +92,7 @@ const AdminLoginPage = () => {
       }
 
       // If login is successful
-      setSuccessMessage(data.message || "Login successful! Redirecting ...");
+      setSuccessMessage("Login successful! Redirecting...");
       setSuccessOpen(true);
 
       // Redirect to admin dashboard after 2 seconds
@@ -123,6 +123,7 @@ const AdminLoginPage = () => {
           open={successOpen}
           onClose={() => setSuccessOpen(false)}
           message={successMessage}
+          showCloseButton={false} // Add this prop to hide the close button
         />
       </Box>
 
