@@ -73,11 +73,7 @@ export default async function handler(req, res) {
     res.status(200).json({
       website,
       probability,
-<<<<<<< HEAD
-      message: `${probability}%`,
-=======
       message:` ${probability}%`, 
->>>>>>> mavra
     });
 
   } catch (error) {
