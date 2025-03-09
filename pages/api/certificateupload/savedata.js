@@ -41,6 +41,7 @@
 //     console.log("📏 Binary Buffer Size:", binaryBuffer.length, "bytes");
 
 //     const bucketName = "certification_pdf_storage";
+//     const fileName = certificate_${Date.now()}.pdf;
 //     const fileName = `certificate_${Date.now()}.pdf`;
 
 //     console.log("📤 Uploading PDF to Supabase Storage...");
@@ -147,6 +148,7 @@ export default async function handler(req, res) {
 
     const bucketName = "certification_pdf_storage";
     const fileName = `certificate_${Date.now()}.pdf`;
+
 
     console.log("📤 Uploading PDF to Supabase Storage...");
     const { data: uploadData, error: uploadError } = await supabase.storage

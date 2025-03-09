@@ -2,25 +2,23 @@ const hre = require("hardhat");
 const fs = require("fs");
 
 async function main() {
+    console.log("🚀 Deploying ManufacturerStorage contract to Sepolia...");
+
     // Get the contract factory
     const ManufacturerStorage = await hre.ethers.getContractFactory("ManufacturerStorage");
 
-
-    console.log("🚀 Deploying ManufacturerStorage contract...");
-
-    // Deploy the contract
+    // Deploy the contract to Sepolia
     const contract = await ManufacturerStorage.deploy();
-await contract.waitForDeployment(); // Ensures proper deployment
-// This replaces 'deployed()' in Hardhat's new version
+    await contract.waitForDeployment(); // Ensures proper deployment
 
-    const contractAddress = await contract.getAddress(); // Get contract address properly
+    const contractAddress = await contract.getAddress(); // Get contract address
 
-    console.log(`✅ Contract deployed successfully at: ${contractAddress}`);
+    console.log(`✅ Contract deployed successfully at: ${contractAddress} on Sepolia`);
 
     // Save contract address to a JSON file
     const contractData = {
         contractAddress: contractAddress,
-        network: hre.network.name,
+        network: "sepolia",
         timestamp: new Date().toISOString()
     };
 

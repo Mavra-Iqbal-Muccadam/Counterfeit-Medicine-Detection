@@ -154,7 +154,7 @@ const ManufacturerForm = () => {
         setSuccessMsg({
           open: true,
           message: "✅ Your Application has been received!",
-          routeButton: { path: "/userlogin", label: "Go to Login" },
+          routeButton: { path: "/manufacturerlogin", label: "Go to Login" },
         });
         resetForm(); // Reset the form fields
       } else {

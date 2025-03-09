@@ -48,3 +48,24 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: "An error occurred. Please try again" });
   }
 }
+
+
+// Example login function
+const handleLogin = async (email, password) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    // Store the admin's email in local storage
+    localStorage.setItem("adminEmail", email);
+
+    // Redirect to the admin dashboard
+    window.location.href = "/admin";
+  } catch (error) {
+    console.error("Login error:", error.message);
+  }
+};
