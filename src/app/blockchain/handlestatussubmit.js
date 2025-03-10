@@ -1,5 +1,5 @@
 import { getManufacturerStatus } from "../../../lib/check-status";
-import { loginWithMetaMask } from "../blockchain/login"; // Importing blockchain check
+import { checkManufacturerStatus } from "../blockchain/checkapprovedstatus"; // Importing blockchain check
 
 export async function handleSubmit(inputValue, setErrorMessage, setStatus, setStatusColor, setStatusModalOpen) {
     if (!inputValue) {
@@ -36,21 +36,21 @@ export async function handleSubmit(inputValue, setErrorMessage, setStatus, setSt
             console.log("🔴 Wallet address not found in DB. Checking blockchain...");
 
             // 🔹 Now check blockchain using login function
-            const blockchainResult = await loginWithMetaMask();
+            const blockchainResult = await checkManufacturerStatus(inputValue); // Ensure walletAddress is provided
 
-            if (blockchainResult.success) {
-                console.log("🟢 Manufacturer found on Blockchain!");
+                if (blockchainResult.success) {
+                    console.log("🟢 Manufacturer found on Blockchain!");
 
-                // ✅ Fix: Ensure UI updates correctly
-                finalStatus = "Accepted!";
-                statusColor = "#238520"; // Green color
-            } else {
-                console.log("🔴 Manufacturer not found anywhere.");
-                setErrorMessage("Wallet address not found in database or blockchain.");
-                setStatus("");
-                return;
-            }
-        }
+                    // ✅ Fix: Ensure UI updates correctly
+                    finalStatus = "Accepted!";
+                    statusColor = "#238520"; // Green color
+                } else {
+                    console.log("🔴 Manufacturer not found anywhere.");
+                    setErrorMessage("Wallet address not found in database or blockchain.");
+                    setStatus("");
+                    return;
+                }
+                        }
 
         setTimeout(() => {
             console.log(`✅ Updating UI: Status = ${finalStatus}, Color = ${statusColor}`);
