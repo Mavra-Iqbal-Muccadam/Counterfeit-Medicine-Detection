@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
+import { handleSubmit } from './formsubmit';
+import { detectWallet } from './formsubmit';
 
 export default function MedicineForm() {
   const [medicine, setMedicine] = useState({
@@ -10,15 +12,24 @@ export default function MedicineForm() {
     batchNumber: '',
     manufactureDate: '',
     expiryDate: '',
-    excipients: [''], 
+    excipients: [''],
     types: [],
     excipientExpiryDate: '',
     description: '',
-    files: [] // ✅ Medicine Image Upload
+    files: [], // ✅ Medicine Image Upload
+    walletAddress: '', // ✅ Auto-detected Wallet Address
+    status: 'pending', // ✅ Default status
   });
 
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    console.log("Running detectWallet on component mount...");
+    detectWallet(setMedicine);
+  }, []); 
 
+
+
+  
   const medicineTypes = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Gel']; // ✅ Medicine types list
 
   const handleFileChange = async (e) => {
@@ -88,11 +99,27 @@ export default function MedicineForm() {
         ? prev.types.filter((t) => t !== type)
         : [...prev.types, type]
     }));
+
+
+   
+
+
+     
+  
   };
 
+
+
+
+
+
+
+
+
+  // frontend
   return (
     <div className="flex justify-center items-center min-h-screen bg-pink-200">
-      <form className="bg-pink-300 p-6 rounded-lg shadow-lg w-96">
+      <form className="bg-pink-300 p-6 rounded-lg shadow-lg w-96" onSubmit={(e) => handleSubmit(e, medicine, setMedicine)}>
         
         {/* ✅ Auto-trigger API on file upload */}
         <label className="block mb-2 text-lg font-semibold">Upload Certificate</label>
@@ -155,15 +182,14 @@ export default function MedicineForm() {
         ))}
 
         {/* ✅ Restored: Upload Medicine Image */}
-        <label className="block mt-4 mb-2">Upload Medicine Image</label>
-        <input 
-          type="file" 
-          multiple 
-          onChange={handleImageUpload} 
-          className="w-full p-2 border" 
-          accept="image/*"
-        />
-
+        <label className="block mt-4 mb-2">Upload Medicine File (PNG or PDF)</label>
+<input 
+  type="file" 
+  multiple 
+  onChange={handleImageUpload} 
+  className="w-full p-2 border" 
+  accept=".png, .jpg, .jpeg"
+/>
         <label className="block mt-4 mb-2">Description</label>
         <textarea name="description" className="w-full p-2 rounded" rows="3" onChange={handleChange}></textarea>
 
