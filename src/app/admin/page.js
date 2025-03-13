@@ -33,6 +33,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
+import handleAccept from "../blockchain/handleaccept"
 
 const AdminPage = () => {
   const [activeSection, setActiveSection] = useState("pendingManufacturers");
@@ -99,25 +100,22 @@ const AdminPage = () => {
     }
   };
 
-  const handleAccept = async (manufacturer) => {
-    console.log("📌 handleAccept called with:", manufacturer);
-  
-    if (!manufacturer || !manufacturer.manufacturer_id) {
-      console.error("❌ Invalid manufacturer data - missing manufacturer_id:", manufacturer);
-      return;
-    }
-  
-    const result = await acceptManufacturer(manufacturer.manufacturer_id);
-  
-    if (result) {
-      console.log("✅ Manufacturer accepted:", result);
-      setAcceptedManufacturers((prev) => [...prev, { ...manufacturer, status: "accepted" }]);
-      setPendingManufacturers((prev) => prev.filter((m) => m.manufacturer_id !== manufacturer.manufacturer_id));
-      setSelectedManufacturer(null); // Go back to the main table
-    } else {
-      console.error("❌ Failed to update manufacturer status");
-    }
-  };
+
+
+
+  const handleAcceptClick = async (id) => {
+    await handleAccept(id, setAcceptedManufacturers, setPendingManufacturers);
+    
+  };
+
+
+
+
+
+
+
+
+
 
 
   const handleReject = async (manufacturer) => {
@@ -581,9 +579,22 @@ const AdminPage = () => {
               <Box sx={{ textAlign: "center", padding: "16px" }}>
                 <Button
                   size="small"
-                  onClick={() => handleAccept(selectedManufacturer)}
+                  onClick={() => {
+                    console.log("🟢 Clicked Accept Button!");
+                    console.log("🔹 Manufacturer ID:", selectedManufacturer?.manufacturer_id);
+                    console.log("🔹 Full Manufacturer Object:", selectedManufacturer);
+                
+                    handleAccept(
+                      selectedManufacturer.manufacturer_id,
+                      setAcceptedManufacturers,
+                      setPendingManufacturers,
+                      selectedManufacturer // Pass the full manufacturer object
+                    );
+                  }}
                   sx={{ color: "white", mr: 2 }}
                 >
+                
+                  
                   Accept
                 </Button>
                 {/* <Button

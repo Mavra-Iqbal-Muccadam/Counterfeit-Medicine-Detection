@@ -3,14 +3,15 @@ const fs = require("fs");
 
 async function main() {
     // Get the contract factory
-    const ManufacturerIPFSStorage = await hre.ethers.getContractFactory("ManufacturerIPFSStorage");
+    const ManufacturerStorage = await hre.ethers.getContractFactory("ManufacturerStorage");
 
-    console.log("🚀 Deploying ManufacturerIPFSStorage contract...");
+
+    console.log("🚀 Deploying ManufacturerStorage contract...");
 
     // Deploy the contract
-    const contract = await ManufacturerIPFSStorage.deploy();  // Ensure this is correct
-
-    await contract.waitForDeployment(); // This replaces 'deployed()' in Hardhat's new version
+    const contract = await ManufacturerStorage.deploy();
+await contract.waitForDeployment(); // Ensures proper deployment
+// This replaces 'deployed()' in Hardhat's new version
 
     const contractAddress = await contract.getAddress(); // Get contract address properly
 
