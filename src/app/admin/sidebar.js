@@ -21,7 +21,7 @@ import CancelIcon from "@mui/icons-material/Cancel"; // Icon for Rejected
 import QrCodeIcon from "@mui/icons-material/QrCode"; // Icon for QR Codes
 import PersonIcon from "@mui/icons-material/Person"; // Icon for User Profiles
 
-const Sidebar = ({ handleListItemClick }) => {
+const Sidebar = ({ handleSectionChange, activeDashboard }) => {
   // State to manage dropdown open/close
   const [openManufacturers, setOpenManufacturers] = useState(false);
   const [openMedicines, setOpenMedicines] = useState(false);
@@ -90,7 +90,7 @@ const Sidebar = ({ handleListItemClick }) => {
           <List sx={{ pl: 4 }}>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("acceptedManufacturers")}
+                onClick={() => handleSectionChange("acceptedManufacturers")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -104,7 +104,7 @@ const Sidebar = ({ handleListItemClick }) => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("pendingManufacturers")}
+                onClick={() => handleSectionChange("pendingManufacturers")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -118,7 +118,7 @@ const Sidebar = ({ handleListItemClick }) => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("rejectedManufacturers")}
+                onClick={() => handleSectionChange("rejectedManufacturers")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -154,7 +154,7 @@ const Sidebar = ({ handleListItemClick }) => {
           <List sx={{ pl: 4 }}>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("acceptedMedicines")}
+                onClick={() => handleSectionChange("acceptedMedicines")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -168,7 +168,7 @@ const Sidebar = ({ handleListItemClick }) => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("pendingMedicines")}
+                onClick={() => handleSectionChange("pendingMedicines")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -182,7 +182,7 @@ const Sidebar = ({ handleListItemClick }) => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("rejectedMedicines")}
+                onClick={() => handleSectionChange("rejectedMedicines")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -218,7 +218,7 @@ const Sidebar = ({ handleListItemClick }) => {
           <List sx={{ pl: 4 }}>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("qrCodes")}
+                onClick={() => handleSectionChange("qrCodes")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",
@@ -232,7 +232,7 @@ const Sidebar = ({ handleListItemClick }) => {
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={() => handleListItemClick("userProfiles")}
+                onClick={() => handleSectionChange("userProfiles")}
                 sx={{
                   "&:hover": {
                     bgcolor: "#B2EBF2",

@@ -32,8 +32,25 @@ const ManufacturerSlideshow = ({
   handleRejectSubmit,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [detailsModalOpen, setDetailsModalOpen] = useState(false); // State for details modal
-  const [showRejectCommentBox, setShowRejectCommentBox] = useState(false); // State to show/hide reject comment box
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [showRejectCommentBox, setShowRejectCommentBox] = useState(false);
+
+  // Column mapping for manufacturer details
+  const columnNameMapping = {
+    name: "Manufacturer Name",
+    physical_address: "Physical Address",
+    phone: "Phone Number",
+    licence_no: "License Number",
+    email: "Email Address",
+    wallet_address: "Wallet Address",
+    certification_url: "Certification PDF",
+    certification_no: "Certification Number",
+    website_url: "Website URL",
+    date_of_issue: "Date of Issue",
+    reg_date: "Registration Date",
+    status: "Status",
+    rejection_comments: "Rejection Comments",
+  };
 
   // Filter manufacturers based on activeSection
   const filteredManufacturers = manufacturers.filter((manufacturer) => {
@@ -44,7 +61,7 @@ const ManufacturerSlideshow = ({
     } else if (activeSection === "rejectedManufacturers") {
       return manufacturer.status === "rejected";
     }
-    return true; // Show all if no section is selected
+    return true;
   });
 
   // Handle navigation between manufacturers
@@ -85,29 +102,29 @@ const ManufacturerSlideshow = ({
   return (
     <Box
       sx={{
-        width: "100%", // Full width
-        height: "calc(100vh - 390px)", // Adjusted height
-        overflowY: "auto", // Enable scrolling if content overflows
-        bgcolor: "#ffffff", // Background color
-        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Add shadow for better visibility
-        zIndex: 1200, // Ensure it appears above other content
-        padding: "20px", // Add padding for spacing
-        marginLeft: "20px", // Add margin to separate from small containers
-        position: "relative", // Add relative positioning for navigation buttons
+        width: "100%",
+        height: "calc(100vh - 390px)",
+        overflowY: "auto",
+        bgcolor: "#ffffff",
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+        zIndex: 1200,
+        padding: "20px",
+        marginLeft: "20px",
+        position: "relative",
       }}
     >
-      {/* Navigation Arrows (Always visible) */}
+      {/* Navigation Arrows */}
       <>
         <IconButton
           onClick={() => handleNavigation("previous")}
           disabled={currentIndex === 0}
           sx={{
             position: "absolute",
-            left: "20px", // Adjusted position
+            left: "20px",
             top: "50%",
             transform: "translateY(-50%)",
             color: "#016A70",
-            zIndex: 1300, // Ensure buttons are above other content
+            zIndex: 1300,
           }}
         >
           <ArrowBackIosIcon />
@@ -117,11 +134,11 @@ const ManufacturerSlideshow = ({
           disabled={currentIndex === filteredManufacturers.length - 1}
           sx={{
             position: "absolute",
-            right: "20px", // Adjusted position
+            right: "20px",
             top: "50%",
             transform: "translateY(-50%)",
             color: "#016A70",
-            zIndex: 1300, // Ensure buttons are above other content
+            zIndex: 1300,
           }}
         >
           <ArrowForwardIosIcon />
@@ -162,11 +179,11 @@ const ManufacturerSlideshow = ({
         fullWidth
         sx={{
           "& .MuiDialog-container": {
-            alignItems: "flex-start", // Align the dialog to the top
+            alignItems: "flex-start",
           },
           "& .MuiDialog-paper": {
-            marginTop: "70px", // Push the dialog down by 70px
-            marginBottom: "200px", // Add space at the bottom
+            marginTop: "70px",
+            marginBottom: "200px",
           },
         }}
       >
@@ -174,21 +191,18 @@ const ManufacturerSlideshow = ({
         <DialogContent>
           {selectedManufacturer && (
             <Box>
-              {/* Manufacturer Details */}
+              {/* Manufacturer Details with Column Mapping */}
               {Object.entries(selectedManufacturer).map(([key, value]) => {
                 if (key === "manufacturer_id" || key === "wallet_address") return null;
                 if (key === "rejection_comments" && selectedManufacturer.status !== "rejected") return null;
 
+                // Get the mapped column name
+                const columnName = columnNameMapping[key] || key;
+
                 return (
                   <Box key={key} sx={{ mb: 2 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#016A70" }}>
-                      {key === "website_url"
-                        ? "Website URL"
-                        : key === "certification_url"
-                        ? "Certification"
-                        : key === "rejection_comments"
-                        ? "Rejection Comments"
-                        : key}
+                      {columnName}
                     </Typography>
                     <Typography variant="body1" sx={{ color: "#555" }}>
                       {key === "website_url" ? (
@@ -270,7 +284,7 @@ const ManufacturerSlideshow = ({
                   </Button>
                   <Button
                     variant="contained"
-                    onClick={handleRejectClick} // Show reject comment box on click
+                    onClick={handleRejectClick}
                     sx={{ backgroundColor: "#ff4444", color: "#fff" }}
                   >
                     Reject
@@ -278,7 +292,7 @@ const ManufacturerSlideshow = ({
                 </Box>
               )}
 
-              {/* Reject Comment Box (Dynamically shown) */}
+              {/* Reject Comment Box */}
               {showRejectCommentBox && (
                 <Box sx={{ mt: 3 }}>
                   <TextField
