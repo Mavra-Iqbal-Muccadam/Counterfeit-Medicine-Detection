@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabaseClientanon';
+import { supabase } from '../../../lib/supabaseClientservice';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { serialize } from 'cookie';

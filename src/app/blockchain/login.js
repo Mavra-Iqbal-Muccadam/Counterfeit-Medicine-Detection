@@ -42,4 +42,3 @@ export async function loginWithMetaMask() {
       return { success: false, message: "❌ Login failed. Check console for details." };
     }
   }
-  
