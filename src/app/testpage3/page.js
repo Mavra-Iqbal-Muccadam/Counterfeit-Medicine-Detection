@@ -30,7 +30,7 @@ export default function MedicineForm() {
 
 
   
-  const medicineTypes = ['Tablet', 'Capsule', 'Syrup', 'Injection', 'Cream', 'Gel']; // ✅ Medicine types list
+  const medicineTypes = [ 'Capsule', 'Syrup', 'Injection', 'Antibiotics']; // ✅ Medicine types list
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];

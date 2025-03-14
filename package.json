@@ -33,11 +33,13 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.12.0",
     "next": "^15.1.6",
+    "openai": "^4.86.2",
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.3",
     "puppeteer": "^24.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "replicate": "^1.0.1",
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
