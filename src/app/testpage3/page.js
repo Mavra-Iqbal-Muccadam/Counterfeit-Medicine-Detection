@@ -18,6 +18,7 @@ export default function MedicineForm() {
     description: '',
     files: [], // ✅ Medicine Image Upload
     walletAddress: '', // ✅ Auto-detected Wallet Address
+    
     status: 'pending', // ✅ Default status
   });
 
@@ -32,60 +33,87 @@ export default function MedicineForm() {
   
   const medicineTypes = [ 'Capsule', 'Syrup', 'Injection', 'Antibiotics']; // ✅ Medicine types list
 
+  // important code
   const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-
+    const file = e.target.files[0]; // Only allow one PDF file at a time
+  
     if (!file) return;
+  
     if (file.type !== "application/pdf") {
       alert("Please upload a valid PDF file.");
       return;
     }
-
+  
+    console.log("Selected PDF File:", file);
+  
     setLoading(true);
-
+  
     const formData = new FormData();
     formData.append("certification", file);
-
+  
     try {
       const response = await fetch("/api/medicineregistration/autofill", {
         method: "POST",
         body: formData,
       });
-
+  
       const result = await response.json();
-      console.log("Upload result:", result);
-
-      // ✅ Convert dosage_form to PascalCase
+      console.log("Autofill API Result:", result);
+  
+      // ✅ Convert `dosage_form` to PascalCase (e.g., 'capsule' → 'Capsule')
       const formattedDosage = result.extractedData.dosage_form
         ? result.extractedData.dosage_form
-          .toLowerCase()
-          .replace(/\b\w/g, (char) => char.toUpperCase()) // Capitalize first letter
-        : '';
-
-      // ✅ Automatically check the corresponding checkbox if dosage_form matches
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+        : "";
+  
+      // ✅ Auto-check the corresponding medicine type if it exists in the list
       const updatedTypes = medicineTypes.includes(formattedDosage) ? [formattedDosage] : [];
-
-      // ✅ Auto-fill extracted data into state
+  
+      // ✅ Update state without overwriting `files`
       setMedicine((prev) => ({
         ...prev,
-        name: result.extractedData.medicine_name || '',
-        medicineId: result.extractedData.medicine_id || '',
-        batchNumber: result.extractedData.batch_number || '',
-        excipients: result.extractedData.excipients || [''],
+        name: result.extractedData.medicine_name || "",
+        medicineId: result.extractedData.medicine_id || "",
+        batchNumber: result.extractedData.batch_number || "",
+        excipients: result.extractedData.excipients || [""],
         types: updatedTypes, // ✅ Auto-select medicine type checkbox
+        files: [...prev.files, file], // ✅ Append PDF to `files`
       }));
-
+  
     } catch (error) {
       console.error("Upload error:", error);
     }
-
+  
     setLoading(false);
   };
+  
+  
+  
 
+// important code
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    setMedicine((prev) => ({ ...prev, files }));
+    const selectedFiles = Array.from(e.target.files);
+  
+    if (selectedFiles.length === 0) {
+      alert("Please select a valid file (PNG, JPG, or PDF).");
+      return;
+    }
+  
+    console.log("Selected Files:", selectedFiles);
+  
+    // ✅ Append files instead of replacing
+    setMedicine((prev) => ({
+      ...prev,
+      files: [...prev.files, ...selectedFiles], // Append new files
+    }));
   };
+
+  
+
+
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
