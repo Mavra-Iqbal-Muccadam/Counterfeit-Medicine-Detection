@@ -179,25 +179,25 @@ export default function MedicineForm() {
       setErrorMsg({ open: true, message: "❌ Please select a file to upload." });
       return;
     }
-
+  
     if (file.type !== "application/pdf") {
       setErrorMsg({ open: true, message: "❌ Please upload a valid PDF file." });
       return;
     }
-
+  
     setPdf(file);
     setPdfUrl(URL.createObjectURL(file));
     setLoading(true);
-
+  
     const formData = new FormData();
     formData.append("certificate", file);
-
+  
     try {
       const response = await fetch("/api/medicineregistration/autofill", {
         method: "POST",
         body: formData,
       });
-
+  
       if (!response.ok) {
         if (response.status === 409) {
           // Assuming 409 is the status code for "Medicine already exists"
@@ -206,18 +206,18 @@ export default function MedicineForm() {
           throw new Error(`Server error: ${response.status}`);
         }
       }
-
+  
       const result = await response.json();
-
+  
       if (!result.extractedData) throw new Error("No extracted data found.");
-
+  
       const formattedDosage = result.extractedData.dosage_form
         ? result.extractedData.dosage_form.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())
         : "";
-
+  
       const updatedTypes = dosageOptions.includes(formattedDosage) ? [formattedDosage] : [];
       const updatedExcipients = result.extractedData.excipients || [""];
-
+  
       setMedicine((prev) => ({
         ...prev,
         name: result.extractedData.medicine_name || "",
@@ -263,7 +263,7 @@ export default function MedicineForm() {
   const addExcipient = () => {
     setMedicine((prev) => ({ ...prev, excipients: [...prev.excipients, ""] }));
   };
-
+  
   const removeExcipient = (index) => {
     setMedicine((prev) => ({
       ...prev,
@@ -344,27 +344,27 @@ export default function MedicineForm() {
           onChange={handleChange}
         />
 
-        <label className="block mt-4 mb-2">Excipients</label>
-        {medicine.excipients.map((excipient, index) => (
-          <div key={index} className="flex items-center gap-2 mb-2">
-            <input
-              type="text"
-              className="w-full p-2 rounded"
-              placeholder={`Excipient ${index + 1}`}
-              value={excipient}
-              onChange={(e) => {
-                const newExcipients = [...medicine.excipients];
-                newExcipients[index] = e.target.value;
-                setMedicine((prev) => ({ ...prev, excipients: newExcipients }));
-                setErrors((prev) => ({ ...prev, excipients: validateField("excipients", newExcipients) }));
-              }}
-            />
-            {medicine.excipients.length > 1 && (
-              <button type="button" className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => removeExcipient(index)}> - </button>
-            )}
-          </div>
-        ))}
-        <button type="button" className="bg-green-500 text-white px-2 py-1 rounded" onClick={addExcipient}> + Add </button>
+<label className="block mt-4 mb-2">Excipients</label>
+{medicine.excipients.map((excipient, index) => (
+  <div key={index} className="flex items-center gap-2 mb-2">
+    <input
+      type="text"
+      className="w-full p-2 rounded"
+      placeholder={`Excipient ${index + 1}`}
+      value={excipient}
+      onChange={(e) => {
+        const newExcipients = [...medicine.excipients];
+        newExcipients[index] = e.target.value;
+        setMedicine((prev) => ({ ...prev, excipients: newExcipients }));
+        setErrors((prev) => ({ ...prev, excipients: validateField("excipients", newExcipients) }));
+      }}
+    />
+    {medicine.excipients.length > 1 && (
+      <button type="button" className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => removeExcipient(index)}> - </button>
+    )}
+  </div>
+))}
+<button type="button" className="bg-green-500 text-white px-2 py-1 rounded" onClick={addExcipient}> + Add </button>
 
         <label className="block mt-4 mb-2">Medicine Type</label>
         <Box>
