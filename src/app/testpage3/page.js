@@ -31,11 +31,7 @@ export default function MedicineForm() {
 
 
   
-<<<<<<< HEAD
   const medicineTypes = [ 'Capsule', 'Syrup', 'Injection', 'Antibiotics']; // ✅ Medicine types list
-=======
-  const medicineTypes = ['Antibiotics', 'Capsule', 'Syrup', 'Injection']; // ✅ Medicine types list
->>>>>>> khatija
 
   // important code
   const handleFileChange = async (e) => {

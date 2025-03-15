@@ -17,6 +17,7 @@ contract MedicineNFT is ERC721URIStorage {
     uint256 private _tokenIds;
     mapping(uint256 => Medicine) public medicines;
     mapping(address => uint256[]) private medicinesByWallet;
+    mapping(string => uint256) private ipfsHashToTokenId; // ✅ Mapping added for IPFS Hash to Token ID
 
     address public admin; // ✅ Store the admin dynamically
 
@@ -52,6 +53,8 @@ contract MedicineNFT is ERC721URIStorage {
             wallet: msg.sender,
             ipfsHash: _ipfsHash
         });
+
+        ipfsHashToTokenId[_ipfsHash] = newTokenId; // ✅ Store the mapping for verification
 
         medicinesByWallet[msg.sender].push(newTokenId);
 
@@ -144,4 +147,19 @@ contract MedicineNFT is ERC721URIStorage {
     function supportsInterface(bytes4 interfaceId) public view override returns (bool) {
         return super.supportsInterface(interfaceId);
     }
+
+    function verifyMedicineByQR(string memory _ipfsHash) public view returns (bool) {
+    if (bytes(_ipfsHash).length == 0) {
+        return false; // Invalid input
+    }
+
+    uint256 tokenId = ipfsHashToTokenId[_ipfsHash];
+
+    if (tokenId == 0 || medicines[tokenId].id != tokenId) {
+        return false; // Token does not exist
+    }
+
+    return medicines[tokenId].status == Status.Accepted; // Medicine is authentic only if status is "Accepted"
+}
+
 }
