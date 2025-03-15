@@ -31,7 +31,11 @@ export default function MedicineForm() {
 
 
   
+<<<<<<< HEAD
   const medicineTypes = [ 'Capsule', 'Syrup', 'Injection', 'Antibiotics']; // ✅ Medicine types list
+=======
+  const medicineTypes = ['Antibiotics', 'Capsule', 'Syrup', 'Injection']; // ✅ Medicine types list
+>>>>>>> khatija
 
   // important code
   const handleFileChange = async (e) => {
@@ -146,15 +150,15 @@ export default function MedicineForm() {
 
   // frontend
   return (
-    <div className="flex justify-center items-center min-h-screen bg-pink-200">
-      <form className="bg-pink-300 p-6 rounded-lg shadow-lg w-96" onSubmit={(e) => handleSubmit(e, medicine, setMedicine)}>
-        
+    <div className="flex justify-center items-center min-h-screen" style={{ backgroundColor: 'lightblue' }}>
+      <form className="bg-light blue-300 p-6 rounded-lg shadow-lg w-96" onSubmit={(e) => handleSubmit(e, medicine, setMedicine)  }>
+<img src="/t.png" alt="Medicine" style={{ maxWidth: '100%', marginBottom: '10px', height: 'auto', backgroundColor: 'transparent' }} />
         {/* ✅ Auto-trigger API on file upload */}
         <label className="block mb-2 text-lg font-semibold">Upload Certificate</label>
-        <input 
-          type="file" 
-          onChange={handleFileChange} 
-          className="w-full p-2 border" 
+        <input
+          type="file"
+          onChange={handleFileChange}
+          className="w-full p-2 border"
           accept="application/pdf"
         />
         {loading && <p className="text-blue-600">Processing...</p>}
