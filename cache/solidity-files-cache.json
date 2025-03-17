@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "E:\\parhley behan\\ecommerce\\ecommerce\\blockchain\\contracts\\manufacturerregistration.sol": {
-      "lastModificationDate": 1742209440684,
-      "contentHash": "bdb430aaa80b5cfe223666db7d44962c",
+      "lastModificationDate": 1742236069011,
+      "contentHash": "360b9a7f2db5507e898ee46a7169b3d8",
       "sourceName": "blockchain/contracts/manufacturerregistration.sol",
       "solcConfig": {
         "version": "0.8.20",

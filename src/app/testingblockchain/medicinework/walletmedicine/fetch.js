@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import MedicineNFT from "../../../artifacts/blockchain/contracts/medicine.sol/MedicineNFT.json";
+import MedicineNFT from "../../../../../artifacts/blockchain/contracts/medicine.sol/MedicineNFT.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
 const MedicineNFTABI = MedicineNFT.abi;
