@@ -8,7 +8,7 @@ dotenv.config();
 
 export const config = {
   api: {
-    bodyParser: false, // Disable default body parsing
+    bodyParser: false,
   },
 };
 
@@ -20,59 +20,65 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = formidable(); // Fix: Properly instantiate formidable
-    form.multiples = false;
-
-    const { fields, files } = await new Promise((resolve, reject) => {
+    const form = formidable();
+    const [fields, files] = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
-        else resolve({ fields, files });
+        else resolve([fields, files]);
       });
     });
 
-    if (!files.certificate) {
-      console.error("❌ No file uploaded");
+    console.log("✅ Form parsed successfully!");
+    const file = files.certification?.[0];
+
+    if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const file = Array.isArray(files.certificate) ? files.certificate[0] : files.certificate; // Ensure correct file reference
-    console.log("📂 Uploaded file details:", file);
-
+    // Validate file type
     if (file.mimetype !== "application/pdf") {
-      console.error("❌ Invalid file type:", file.mimetype);
       return res.status(400).json({ message: "Please upload a valid PDF file." });
     }
 
     console.log("🔍 Reading PDF file...");
-    const dataBuffer = fs.readFileSync(file.filepath);
-
+    const dataBuffer = await fs.promises.readFile(file.filepath);
     console.log("📏 PDF file size:", dataBuffer.length, "bytes");
 
     console.log("🔍 Extracting text from PDF...");
     const pdfData = await pdfParse(dataBuffer);
-    const extractedText = pdfData.text.trim();
+    let extractedText = pdfData.text.trim();
 
     if (!extractedText) {
-      console.error("❌ Failed to extract text from PDF");
       return res.status(400).json({ message: "Failed to extract text from PDF" });
     }
 
     console.log("📡 Sending extracted text to Qwen AI...");
-    const aiResponse = await axios.post(
+    const qwenResponse = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: "qwen/qwen-2-7b-instruct:free",
         messages: [
-          { role: "system", content: "You are an AI assistant trained to extract medicine details from a certificate." },
-          { role: "user", content: `Extract the following details in **valid JSON format**:
+          {
+            role: "system",
+            content: "You are an AI assistant trained to extract medicine details from a certificate.",
+          },
+          {
+            role: "user",
+            content: `Extract the following details in **valid JSON format**:
             - medicine_id
             - medicine_name
             - dosage_form
             - batch_number
+<<<<<<< HEAD
             - excipients
     
+=======
+            - excipients (array format)
+
+>>>>>>> 5235734fe3cac36f9d041a496bd7160fe702b4f5
             Return only the JSON object, **without markdown formatting**. Here is the extracted text:
-            ${extractedText}` },
+            ${extractedText}`,
+          },
         ],
         max_tokens: 200,
       },
@@ -84,6 +90,7 @@ export default async function handler(req, res) {
       }
     );
 
+<<<<<<< HEAD
     const structuredData = aiResponse.data.choices?.[0]?.message?.content?.trim() || "";
 console.log("🔍 AI Raw Response:", structuredData);
 
@@ -103,8 +110,19 @@ try {
 
 console.log("✅ Extracted Data:", jsonData);
 return res.status(200).json({ message: "Certificate processed successfully", extractedData: jsonData });
+=======
+    const structuredData = qwenResponse.data.choices[0]?.message?.content.trim();
+    const cleanedJson = structuredData.replace(/```json|```/g, "").trim();
+    const jsonData = JSON.parse(cleanedJson);
+
+    console.log("📡 Returning extracted data...");
+    return res.status(200).json({
+      message: "Certificate processed successfully",
+      extractedData: jsonData,
+    });
+>>>>>>> 5235734fe3cac36f9d041a496bd7160fe702b4f5
   } catch (error) {
     console.error("❌ Unexpected error:", error);
-    return res.status(500).json({ message: `Internal Server Error: ${error.message}` });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 }
