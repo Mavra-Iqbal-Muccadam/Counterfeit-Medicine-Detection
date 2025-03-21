@@ -1,77 +1,82 @@
 "use client";
 import { useState } from "react";
-import { TextField, Button, Typography, Container, Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import Image from "next/image";
-import { handleSubmit } from "../blockchain/handlestatussubmit";
-import { loginWithMetaMask } from "../blockchain/login";
+import { getManufacturerStatus, loginWithMetaMask } from "../testingblockchain/login-status-manufacture/check"; // Import blockchain functions
+import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from "../components/MsgBox"; // Import message box 
 
 const ManufacturerLogin = () => {
     const [inputValue, setInputValue] = useState("");
     const [status, setStatus] = useState("");
     const [statusColor, setStatusColor] = useState("#ffffff");
-    const [modalOpen, setModalOpen] = useState(false);
-    const [metaMaskErrorModalOpen, setMetaMaskErrorModalOpen] = useState(false);
-    const [metaMaskErrorMessage, setMetaMaskErrorMessage] = useState("");
-    const [statusModalOpen, setStatusModalOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [successOpen, setSuccessOpen] = useState(false);
+    const [errorOpen, setErrorOpen] = useState(false);
+    const [infoOpen, setInfoOpen] = useState(false);
+    const [metaMaskErrorMessage, setMetaMaskErrorMessage] = useState("");
 
-
-
-    const handleCloseMetaMaskErrorModal = () => {
-        setMetaMaskErrorModalOpen(false);
-    };
-
-
-
-    
     const handleInputChange = (event) => {
         const walletRegex = /^0x[a-fA-F0-9]{40}$/;
         const value = event.target.value;
         if (value && !walletRegex.test(value)) {
-            setModalOpen(true);
+            setErrorMessage("Invalid Ethereum wallet address.");
+            setErrorOpen(true);
+        } else {
+            setErrorMessage("");
         }
         setInputValue(value);
     };
 
-    // const handleSubmit = async () => {
-    //     if (!inputValue) {
-    //         setErrorMessage("Please enter a valid wallet address.");
-    //         return;
-    //     }
-    //     setErrorMessage(""); // Clear error if input is valid
+    const handleSubmit = async () => {
+        if (!inputValue) {
+            setErrorMessage("Please enter a valid wallet address.");
+            setErrorOpen(true);
+            return;
+        }
+        setErrorMessage(""); // Clear error if input is valid
 
-    //     setStatus("Processing...");
-    //     setStatusColor("#FFC107");
-    //     setTimeout(() => {
-    //         const statuses = [
-    //             { text: "Approved", color: "#4CAF50" },
-    //             { text: "Rejected", color: "#F44336" },
-    //             { text: "Pending", color: "#FFC107" }
-    //         ];
-    //         const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    //         setStatus(randomStatus.text);
-    //         setStatusColor(randomStatus.color);
-    //         setStatusModalOpen(true);
-    //     }, 1500);
-    // };
+        setStatus("Processing...");
+        setStatusColor("#FFC107");
 
-
-    // aleeza code
-    const handleMetaMaskLogin = async () => {
-        const result = await loginWithMetaMask();
-        if (!result.success) {
-            setMetaMaskErrorMessage(result.message); // Store error message
-            setMetaMaskErrorModalOpen(true); // Open the modal
+        try {
+            const status = await getManufacturerStatus(inputValue);
+            if (status) {
+                setStatus(status);
+                setStatusColor(status === "Approved ✅" ? "#4CAF50" : status === "Rejected ❌" ? "#F44336" : "#FFC107");
+                setSuccessOpen(true);
+            } else {
+                setErrorMessage("Failed to fetch status. Please try again.");
+                setErrorOpen(true);
+            }
+        } catch (error) {
+            console.error("Error fetching status:", error);
+            setErrorMessage("An error occurred while fetching the status.");
+            setErrorOpen(true);
         }
     };
 
-    const handleCloseModal = () => {
-        setModalOpen(false);
+    const handleMetaMaskLogin = async () => {
+        const result = await loginWithMetaMask();
+        if (result === "Login Successful ✅") {
+            setStatus(result);
+            setStatusColor("#4CAF50");
+            setSuccessOpen(true);
+        } else {
+            setMetaMaskErrorMessage(result);
+            setErrorOpen(true);
+        }
     };
 
-    const handleCloseStatusModal = () => {
-        setStatusModalOpen(false);
+    const handleCloseSuccess = () => {
+        setSuccessOpen(false);
+    };
+
+    const handleCloseError = () => {
+        setErrorOpen(false);
+    };
+
+    const handleCloseInfo = () => {
+        setInfoOpen(false);
     };
 
     return (
@@ -96,6 +101,26 @@ const ManufacturerLogin = () => {
                     <source src="/videos/video.mp4" type="video/mp4" />
                 </video>
             </Box>
+
+            {/* Message Boxes (Above Navbar) */}
+            <Box sx={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 2000 }}>
+                <SuccessMsgBox
+                    open={successOpen}
+                    onClose={handleCloseSuccess}
+                    message={status}
+                />
+                <ErrorMsgBox
+                    open={errorOpen}
+                    onClose={handleCloseError}
+                    message={errorMessage || metaMaskErrorMessage}
+                />
+                <InfoMsgBox
+                    open={infoOpen}
+                    onClose={handleCloseInfo}
+                    message="This is an informational message."
+                />
+            </Box>
+
             {/* Navbar */}
             <Box
                 sx={{
@@ -113,7 +138,6 @@ const ManufacturerLogin = () => {
                 }}
             >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-
                     <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>Home</Typography>
                     <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>Contact Us</Typography>
                     <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>About Us</Typography>
@@ -123,7 +147,6 @@ const ManufacturerLogin = () => {
                     <Typography variant="h6" sx={{ ml: 1, color: "#ffffff" }}>MediCare</Typography>
                 </Box>
             </Box>
-
 
             {/* Main Content */}
             <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", mt: "80px" }}>
@@ -153,98 +176,24 @@ const ManufacturerLogin = () => {
                         variant="outlined"
                         value={inputValue}
                         onChange={handleInputChange}
-                        error={!!errorMessage} // Show error if there's a message
-                        helperText={errorMessage} // Display the error message
+                        error={!!errorMessage}
+                        helperText={errorMessage}
                         sx={{ mb: 2, bgcolor: "rgba(255, 255, 255, 0.9)", borderRadius: "8px" }}
                     />
 
-
-                    <Button variant="contained" onClick={() => handleSubmit(inputValue, setErrorMessage, setStatus, setStatusColor, setStatusModalOpen)} 
-                    sx={{ mt: 1, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}>
+                    <Button variant="contained" onClick={handleSubmit} sx={{ mt: 1, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}>
                         Submit
                     </Button>
-                    {/* <Button variant="contained" href="/userlogin" component="a" sx={{ mt: 2, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}>
-                        Login With MetaMask
-                    </Button> */}
 
-                <Button
-                    variant="contained"
-                    onClick={handleMetaMaskLogin}
-                    sx={{ mt: 2, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}
-                >
-                    Login With MetaMask
-                </Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleMetaMaskLogin}
+                        sx={{ mt: 2, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}
+                    >
+                        Login With MetaMask
+                    </Button>
                 </Box>
             </Container>
-
-            {/* Invalid Address Modal */}
-            <Dialog open={modalOpen} onClose={handleCloseModal} sx={{ '& .MuiPaper-root': { borderRadius: 5, padding: 3, backgroundColor: "#f8d7da", textAlign: "center" } }}>
-                <DialogTitle sx={{ color: "#721c24", fontWeight: "bold" }}>Invalid Wallet Address</DialogTitle>
-                <DialogContent>
-                    <Typography>Please enter a valid Ethereum wallet address.</Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: "center" }}>
-                    <Button onClick={handleCloseModal} variant="contained" sx={{ bgcolor: "#721c24", color: "#fff" }}>Close</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Status Modal */}
-            <Dialog 
-    open={statusModalOpen} 
-    onClose={handleCloseStatusModal} 
-    sx={{ 
-        '& .MuiPaper-root': { 
-            borderRadius: 10, 
-            padding: 5, 
-            backgroundColor: "#f9f9f9", 
-            boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.3)", 
-            textAlign: "center",
-            minWidth: "350px"
-            
-        } 
-    }}
->
-
-                <DialogTitle sx={{ fontSize: "1.5rem", fontWeight: "bold", color: statusColor }}>Status</DialogTitle>
-                <DialogContent>
-                    <Typography sx={{ color: statusColor, fontWeight: "bold", fontSize: "1.8rem" }}>
-                        {status}
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: "center" }}>
-                    <Button onClick={handleCloseStatusModal} variant="contained" sx={{ bgcolor: statusColor, color: "#fff", fontWeight: "bold" }}>OK</Button>
-                </DialogActions>
-            </Dialog>
-
-            <Dialog 
-    open={metaMaskErrorModalOpen} 
-    onClose={() => setMetaMaskErrorModalOpen(false)}
-    sx={{ 
-        '& .MuiPaper-root': { 
-            borderRadius: 10, 
-            padding: 5, 
-            backgroundColor: "#f9f9f9", 
-            boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.3)", 
-            textAlign: "center",
-            minWidth: "350px"
-        } 
-    }}
->
-    <DialogTitle sx={{ fontSize: "1.5rem", fontWeight: "bold", color: "#F44336" }}>
-        MetaMask Login Failed
-    </DialogTitle>
-    <DialogContent>
-        <Typography sx={{ color: "#F44336", fontWeight: "bold", fontSize: "1.2rem" }}>
-            {metaMaskErrorMessage}
-        </Typography>
-    </DialogContent>
-    <DialogActions sx={{ justifyContent: "center" }}>
-        <Button onClick={() => setMetaMaskErrorModalOpen(false)} variant="contained" sx={{ bgcolor: "#F44336", color: "#fff", fontWeight: "bold" }}>
-            OK
-        </Button>
-    </DialogActions>
-</Dialog>
-
         </>
     );
 };

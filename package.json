@@ -25,13 +25,9 @@
     "express": "^4.21.2",
     "form-data": "^4.0.1",
     "formidable": "^3.5.2",
-<<<<<<< HEAD
     "fs": "^0.0.1-security",
     "html5-qrcode": "^2.3.8",
     "https": "^1.0.0",
-=======
-    "html5-qrcode": "^2.3.8",
->>>>>>> 5235734fe3cac36f9d041a496bd7160fe702b4f5
     "install": "^0.13.0",
     "ipfs-core": "^0.18.1",
     "ipfs-http-client": "^60.0.1",
@@ -39,23 +35,17 @@
     "jsqr": "^1.4.0",
     "mysql2": "^3.12.0",
     "next": "^15.1.6",
-<<<<<<< HEAD
     "openssl": "^2.0.0",
-=======
     "openai": "^4.86.2",
->>>>>>> 5235734fe3cac36f9d041a496bd7160fe702b4f5
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.3",
     "puppeteer": "^24.3.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-<<<<<<< HEAD
     "react-qr-code": "^2.0.15",
-=======
     "recharts": "^2.15.1",
     "replicate": "^1.0.1",
->>>>>>> 5235734fe3cac36f9d041a496bd7160fe702b4f5
     "styled-components": "^6.1.15"
   },
   "devDependencies": {

@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { Container, Paper, Box, TextField, Button, FormControlLabel, Checkbox, CircularProgress, Typography } from '@mui/material';
+import { Container, Paper, Box, TextField, Button, FormControlLabel, Checkbox, CircularProgress, Typography, Grid, Tooltip } from '@mui/material';
 import Image from "next/image";
-import { SuccessMsgBox, ErrorMsgBox } from '../components/MsgBox';
+import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from '../components/MsgBox';
+import { storeManufacturerData } from "../testingblockchain/manufactureregistration/submit"; // Import the blockchain function
 
 const ManufacturerForm = () => {
   const resetForm = () => {
@@ -44,6 +45,7 @@ const ManufacturerForm = () => {
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [successMsg, setSuccessMsg] = useState({ open: false, message: '', routeButton: null });
   const [errorMsg, setErrorMsg] = useState({ open: false, message: '' });
+  const [infoMsg, setInfoMsg] = useState({ open: false, message: '' }); // For processing message
 
   const validateField = (name, value) => {
     switch (name) {
@@ -99,6 +101,7 @@ const ManufacturerForm = () => {
       formData.append("certification", file);
 
       try {
+        setInfoMsg({ open: true, message: "Processing certificate..." }); // Show processing message
         const response = await fetch("/api/certificateupload/certificateupload", {
           method: "POST",
           body: formData,
@@ -117,11 +120,14 @@ const ManufacturerForm = () => {
             dateOfIssue: result.extractedData.date_of_issue || "",
             certificationBytea: result.certificationBytea || "",
           }));
+          setSuccessMsg({ open: true, message: "✅ Certificate uploaded successfully!" }); // Show success message
         } else {
           setErrorMsg({ open: true, message: `❌ Error: ${result.message}` });
         }
       } catch (error) {
         setErrorMsg({ open: true, message: "❌ Error uploading certificate." });
+      } finally {
+        setInfoMsg({ open: false, message: '' }); // Hide processing message
       }
     }
   };
@@ -150,28 +156,31 @@ const ManufacturerForm = () => {
     }
 
     try {
-      const response = await fetch("/api/certificateupload/savedata", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
-      });
+      // Prepare data for blockchain
+      const blockchainData = {
+        email: formData.email,
+        pdf: certification,
+        manufacturerName: formData.name,
+        dateOfIssue: formData.dateOfIssue,
+        licenceNo: formData.licenceNo,
+        phoneNumber: formData.phone,
+        physicalAddress: formData.physicalAddress,
+        website: formData.website,
+        walletAddress: formData.walletAddress,
+        certificationNumber: formData.certificationNumber,
+        privacyPolicy: privacyChecked,
+      };
 
-      const result = await response.json();
-      if (response.ok) {
-        setSuccessMsg({
-          open: true,
-          message: "✅ Your Application has been received!",
-          routeButton: { path: "/manufacturerlogin", label: "Go to Login" },
-        });
-        resetForm(); // Reset the form fields
-      } else {
-        // Handle specific error messages from the API
-        if (result.message === "This user already exists.") {
-          setErrorMsg({ open: true, message: "❌ This user already exists." });
-        } else {
-          setErrorMsg({ open: true, message: "❌ Error registering user." });
-        }
-      }
+      // Call the blockchain function
+      await storeManufacturerData(blockchainData);
+
+      // Show success message
+      setSuccessMsg({
+        open: true,
+        message: "✅ Your Application has been received!",
+        routeButton: { path: "/manufacturerlogin", label: "Go to Login" },
+      });
+      resetForm(); // Reset the form fields
     } catch (error) {
       console.error("❌ Error submitting form:", error);
       setErrorMsg({ open: true, message: "❌ Error submitting form. Please try again later." });
@@ -227,7 +236,7 @@ const ManufacturerForm = () => {
       </Box>
 
       <Container
-        maxWidth="sm"
+        maxWidth="md" // Increased width
         sx={{
           display: "flex",
           alignItems: "center",
@@ -241,166 +250,206 @@ const ManufacturerForm = () => {
           sx={{
             p: 3,
             width: "100%",
-            maxWidth: "450px",
+            maxWidth: "900px", // Increased width
             maxHeight: "84vh",
             overflowY: "auto",
             borderRadius: 2,
-            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backgroundColor: "rgba(255, 255, 255)", // Translucent background
             backdropFilter: "blur(8px)",
           }}
         >
-          <Typography variant="h5" sx={{ textAlign:"center",fontWeight: "bold" }}>
+          {/* Image and Heading */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h4" sx={{ fontWeight: "bold" }}> {/* Heading on the left */}
               Manufacturer Registration
             </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent:"space-evenly",
-              marginBottom: "15px",
-              marginTop: "5px",
-            }}
-          >
-            
             <Image
-              src="/yar.jpg"
+              src="/yar.png"
               alt="Manufacturer Registration"
-              width={250}
-              height={200}
+              width={200} // Smaller image
+              height={180} // Smaller image
               style={{
                 objectFit: "cover",
+                borderRadius: "20px",
               }}
             />
           </Box>
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* Upload PDF Button */}
+            <Tooltip title="Upload the manufacturer proof of certificate" arrow>
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ width: "30%", height: "50px" }} // Shortened button
+              >
+                📄 Upload PDF
+                <input type="file" id="pdfUpload" name="certification" accept="application/pdf" hidden onChange={handleFileUpload} />
+              </Button>
+            </Tooltip>
 
+            {/* Form Fields */}
+            <Grid container spacing={1}> {/* Reduced spacing between fields */}
+              {/* Email */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal" // Changed to match other fields
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={!!errors.email}
-              helperText={errors.email}
-              required
-            />
+              {/* Manufacturer Name */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Manufacturer Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            {/* File Upload */}
-            <Button fullWidth variant="contained" component="label" sx={{ mt: 2, mb: 2 }}>
-              📄 Upload PDF
-              <input type="file" id="pdfUpload" name="certification" accept="application/pdf" hidden onChange={handleFileUpload} />
-            </Button>
-            {fileUrl && (
-              <Box sx={{ mt: 2, mb: 2 }}>
-                <embed src={fileUrl} type="application/pdf" width="100%" height="300px" />
-              </Box>
-            )}
+              {/* Date of Issue */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Date of Issue"
+                  name="dateOfIssue"
+                  type="date"
+                  value={formData.dateOfIssue}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true, required: false }} // Remove asterisk
+                  error={!!errors.dateOfIssue}
+                  helperText={errors.dateOfIssue}
+                  required
+                />
+              </Grid>
 
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Manufacturer Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Date of Issue"
-              name="dateOfIssue"
-              type="date"
-              value={formData.dateOfIssue}
-              onChange={handleChange}
-              InputLabelProps={{ shrink: true }}
-              error={!!errors.dateOfIssue}
-              helperText={errors.dateOfIssue}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Licence No."
-              name="licenceNo"
-              value={formData.licenceNo}
-              onChange={handleChange}
-              error={!!errors.licenceNo}
-              helperText={errors.licenceNo}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Phone Number"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              error={!!errors.phone}
-              helperText={errors.phone}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Physical Address"
-              name="physicalAddress"
-              value={formData.physicalAddress}
-              onChange={handleChange}
-              error={!!errors.physicalAddress}
-              helperText={errors.physicalAddress}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Website (Optional)"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Wallet Address"
-              name="walletAddress"
-              value={formData.walletAddress}
-              onChange={handleChange}
-              error={!!errors.walletAddress}
-              helperText={errors.walletAddress}
-              required
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Certification Number"
-              name="certificationNumber"
-              value={formData.certificationNumber}
-              
-            />
+              {/* Licence No. */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Licence No."
+                  name="licenceNo"
+                  value={formData.licenceNo}
+                  onChange={handleChange}
+                  error={!!errors.licenceNo}
+                  helperText={errors.licenceNo}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            {/* Privacy Policy Checkbox */}
-            <FormControlLabel
-              control={<Checkbox checked={privacyChecked} onChange={handleChange} name="privacyChecked" />}
-              label="I accept the privacy policy."
-              sx={{ mt: 2 }}
-            />
+              {/* Phone Number */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Phone Number"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  error={!!errors.phone}
+                  helperText={errors.phone}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            {/* Submit Button */}
-            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting} fullWidth sx={{ mt: 2, mb: 2 }}>
-              {isSubmitting ? <CircularProgress size={24} /> : "Register Manufacturer"}
-            </Button>
+              {/* Physical Address */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Physical Address"
+                  name="physicalAddress"
+                  value={formData.physicalAddress}
+                  onChange={handleChange}
+                  error={!!errors.physicalAddress}
+                  helperText={errors.physicalAddress}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            
+              {/* Website */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Website (Optional)"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleChange}
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Wallet Address */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Wallet Address"
+                  name="walletAddress"
+                  value={formData.walletAddress}
+                  onChange={handleChange}
+                  error={!!errors.walletAddress}
+                  helperText={errors.walletAddress}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Certification Number */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Certification Number"
+                  name="certificationNumber"
+                  value={formData.certificationNumber}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Privacy Policy Checkbox and Submit Button */}
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 2 }}>
+              <FormControlLabel
+                control={<Checkbox checked={privacyChecked} onChange={handleChange} name="privacyChecked" />}
+                label="I accept the privacy policy."
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isSubmitting}
+                sx={{ padding: "10px 30px" }}
+              >
+                {isSubmitting ? <CircularProgress size={24} /> : "Register Manufacturer"}
+              </Button>
+            </Box>
           </Box>
         </Paper>
       </Container>
+
+      {/* Success, Error, and Info Messages */}
       <Box
         sx={{
           position: "fixed",
@@ -426,8 +475,12 @@ const ManufacturerForm = () => {
           onClose={() => setErrorMsg({ ...errorMsg, open: false })}
           message={errorMsg.message}
         />
+        <InfoMsgBox
+          open={infoMsg.open}
+          onClose={() => setInfoMsg({ ...infoMsg, open: false })}
+          message={infoMsg.message}
+        />
       </Box>
-      
     </Box>
   );
 };
