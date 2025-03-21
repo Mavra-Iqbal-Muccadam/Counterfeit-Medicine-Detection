@@ -1,10 +1,8 @@
-// MsgBox.js
 "use client";
 import React from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-// import { useNavigate } from 'react-router-dom'; // For routing functionality
 import { useRouter } from 'next/navigation';
 
 // Alert component for styling
@@ -14,7 +12,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 
 // Success Message Box Component
 export const SuccessMsgBox = ({ open, onClose, message, routeButton }) => {
-    const router = useRouter();
+  const router = useRouter();
 
   return (
     <Snackbar
@@ -35,7 +33,7 @@ export const SuccessMsgBox = ({ open, onClose, message, routeButton }) => {
               onClick={() => {
                 onClose(); // Close the Snackbar
                 router.push(routeButton.path);
-            }}
+              }}
             >
               {routeButton.label}
             </Button>
@@ -52,7 +50,7 @@ export const SuccessMsgBox = ({ open, onClose, message, routeButton }) => {
   );
 };
 
-// Error Message Box Component (unchanged)
+// Error Message Box Component
 export const ErrorMsgBox = ({ open, onClose, message }) => {
   return (
     <Snackbar
@@ -64,6 +62,31 @@ export const ErrorMsgBox = ({ open, onClose, message }) => {
       <Alert
         onClose={onClose}
         severity="error"
+        sx={{ width: '100%' }}
+        action={
+          <Button color="inherit" size="small" onClick={onClose}>
+            OK
+          </Button>
+        }
+      >
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+};
+
+// Info Message Box Component
+export const InfoMsgBox = ({ open, onClose, message }) => {
+  return (
+    <Snackbar
+      open={open}
+      autoHideDuration={6000} // Auto-close after 6 seconds
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert
+        onClose={onClose}
+        severity="info"
         sx={{ width: '100%' }}
         action={
           <Button color="inherit" size="small" onClick={onClose}>

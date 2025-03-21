@@ -1,62 +1,11 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { insertMedicine } from '../../../lib/medicineregistration';
 import { Checkbox, FormGroup, FormControlLabel, Box } from "@mui/material";
 import { SuccessMsgBox, ErrorMsgBox } from '../components/MsgBox'; // Adjust the import path as needed
-
-const validateField = (name, value) => {
-  switch (name) {
-    case "certificate":
-      return ""; // No validation for certificate
-    case "image":
-      return ""; // No validation for image
-    case "manufactureDate":
-      return value ? "" : "Manufacture date is required.";
-    case "expiryDate":
-      return value ? "" : "Expiry date is required.";
-    case "excipients":
-      return Array.isArray(value) && value.length > 0 && value.every((item) => item.trim() !== "")
-        ? ""
-        : "At least one excipient is required.";
-    case "types":
-      return value && Object.keys(value).length > 0 ? "" : "At least one type must be selected.";
-    case "description":
-      return value.trim() ? "" : "Description is required.";
-    default:
-      return "";
-  }
-};
-
-const detectWallet = async (setMedicine) => {
-  if (typeof window === "undefined") {
-    console.warn("Window is undefined, running in a server-side environment.");
-    return;
-  }
-
-  if (!window.ethereum) {
-    console.warn("MetaMask not detected. Please install MetaMask.");
-    return;
-  }
-
-  try {
-    console.log("🔍 Detecting wallet...");
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const walletAddress = await signer.getAddress();
-
-    console.log("✅ Wallet Address Detected:", walletAddress);
-
-    setMedicine((prev) => ({
-      ...prev,
-      walletAddress,
-    }));
-  } catch (error) {
-    console.error("❌ Error detecting wallet:", error);
-  }
-};
+import { storeMedicineOnIPFS } from "../../../pages/api/ipfs/medicine"; // Import IPFS function
+import { handleSubmit, detectWallet } from '../testpage3/formsubmit'; // Import blockchain functions
 
 const dosageOptions = ["Tablet", "Capsule", "Syrup", "Injection", "Cream", "Gel"];
 
@@ -86,10 +35,9 @@ export default function MedicineForm() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    detectWallet(setMedicine);
+    detectWallet(setMedicine); // Call detectWallet on component mount
   }, []);
 
-  // Move resetForm inside the component
   const resetForm = () => {
     setMedicine({
       certificate: "",
@@ -111,20 +59,8 @@ export default function MedicineForm() {
     setErrors({});
   };
 
-  const handleSubmit = async (
-    e,
-    medicine,
-    setMedicine,
-    setIsSubmitting,
-    setErrors,
-    setSuccessMsg,
-    setErrorMsg,
-    resetForm,
-    pdf,
-    image
-  ) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submission started");
     setIsSubmitting(true);
 
     // Validate fields
@@ -155,16 +91,12 @@ export default function MedicineForm() {
       const medicineData = { ...medicine, certificate: pdf ? [pdf] : [], files: image ? Array.from(image) : [] };
       console.log("Prepared medicine data:", medicineData);
 
-      // Call insertMedicine to submit the data
-      const response = await insertMedicine(medicineData);
-      console.log("InsertMedicine response:", response);
+      // Call blockchain's handleSubmit function
+      await handleSubmit(e, medicineData, setMedicine);
 
-      if (response.success) {
-        setSuccessMsg({ open: true, message: "✅ Your Application has been received!" });
-        resetForm(); // Reset the form after successful submission
-      } else {
-        setErrorMsg({ open: true, message: `❌ Error: ${response.error}` });
-      }
+      // Show success message
+      setSuccessMsg({ open: true, message: "✅ Your Application has been received!" });
+      resetForm(); // Reset the form after successful submission
     } catch (error) {
       console.error("Unexpected error:", error);
       setErrorMsg({ open: true, message: "❌ Unexpected error occurred. Please try again." });
@@ -199,23 +131,24 @@ export default function MedicineForm() {
       });
   
       if (!response.ok) {
-        if (response.status === 409) {
-          // Assuming 409 is the status code for "Medicine already exists"
-          throw new Error("Medicine already exists.");
-        } else {
-          throw new Error(`Server error: ${response.status}`);
-        }
+        throw new Error(`Server error: ${response.status}`);
       }
   
       const result = await response.json();
   
-      if (!result.extractedData) throw new Error("No extracted data found.");
+      if (!result.extractedData) {
+        throw new Error("No extracted data found.");
+      }
   
       const formattedDosage = result.extractedData.dosage_form
-        ? result.extractedData.dosage_form.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase())
+        ? result.extractedData.dosage_form
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
         : "";
   
-      const updatedTypes = dosageOptions.includes(formattedDosage) ? [formattedDosage] : [];
+      const updatedTypes = dosageOptions.includes(formattedDosage)
+        ? [formattedDosage]
+        : [];
       const updatedExcipients = result.extractedData.excipients || [""];
   
       setMedicine((prev) => ({
@@ -275,18 +208,7 @@ export default function MedicineForm() {
     <div className="flex justify-center items-center min-h-screen bg-pink-200">
       <form
         className="bg-pink-300 p-6 rounded-lg shadow-lg w-96"
-        onSubmit={(e) => handleSubmit(
-          e,
-          medicine,
-          setMedicine,
-          setIsSubmitting,
-          setErrors,
-          setSuccessMsg,
-          setErrorMsg,
-          resetForm, // Pass the resetForm function here
-          pdf,
-          image
-        )}
+        onSubmit={handleFormSubmit}
       >
         <label className="block mb-2 text-lg font-semibold">Upload Certificate</label>
         <input
@@ -344,27 +266,27 @@ export default function MedicineForm() {
           onChange={handleChange}
         />
 
-<label className="block mt-4 mb-2">Excipients</label>
-{medicine.excipients.map((excipient, index) => (
-  <div key={index} className="flex items-center gap-2 mb-2">
-    <input
-      type="text"
-      className="w-full p-2 rounded"
-      placeholder={`Excipient ${index + 1}`}
-      value={excipient}
-      onChange={(e) => {
-        const newExcipients = [...medicine.excipients];
-        newExcipients[index] = e.target.value;
-        setMedicine((prev) => ({ ...prev, excipients: newExcipients }));
-        setErrors((prev) => ({ ...prev, excipients: validateField("excipients", newExcipients) }));
-      }}
-    />
-    {medicine.excipients.length > 1 && (
-      <button type="button" className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => removeExcipient(index)}> - </button>
-    )}
-  </div>
-))}
-<button type="button" className="bg-green-500 text-white px-2 py-1 rounded" onClick={addExcipient}> + Add </button>
+        <label className="block mt-4 mb-2">Excipients</label>
+        {medicine.excipients.map((excipient, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              className="w-full p-2 rounded"
+              placeholder={`Excipient ${index + 1}`}
+              value={excipient}
+              onChange={(e) => {
+                const newExcipients = [...medicine.excipients];
+                newExcipients[index] = e.target.value;
+                setMedicine((prev) => ({ ...prev, excipients: newExcipients }));
+                setErrors((prev) => ({ ...prev, excipients: validateField("excipients", newExcipients) }));
+              }}
+            />
+            {medicine.excipients.length > 1 && (
+              <button type="button" className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => removeExcipient(index)}> - </button>
+            )}
+          </div>
+        ))}
+        <button type="button" className="bg-green-500 text-white px-2 py-1 rounded" onClick={addExcipient}> + Add </button>
 
         <label className="block mt-4 mb-2">Medicine Type</label>
         <Box>
@@ -415,7 +337,7 @@ export default function MedicineForm() {
         <SuccessMsgBox
           open={successMsg.open}
           onClose={() => setSuccessMsg({ open: false, message: "" })}
-          message={successMsg.message}
+          message={"Medicine successfully stored on blockchain!"}
         />
         <ErrorMsgBox
           open={errorMsg.open}
@@ -426,3 +348,26 @@ export default function MedicineForm() {
     </div>
   );
 }
+
+const validateField = (name, value) => {
+  switch (name) {
+    case "certificate":
+      return ""; // No validation for certificate
+    case "image":
+      return ""; // No validation for image
+    case "manufactureDate":
+      return value ? "" : "Manufacture date is required.";
+    case "expiryDate":
+      return value ? "" : "Expiry date is required.";
+    case "excipients":
+      return Array.isArray(value) && value.length > 0 && value.every((item) => item.trim() !== "")
+        ? ""
+        : "At least one excipient is required.";
+    case "types":
+      return value && Object.keys(value).length > 0 ? "" : "At least one type must be selected.";
+    case "description":
+      return value.trim() ? "" : "Description is required.";
+    default:
+      return "";
+  }
+};

@@ -72,7 +72,6 @@ async function storeOnBlockchain(walletAddress, jsonCID, pdfCID) {
 
     await tx.wait();
     console.log("✅ Transaction Confirmed:", tx.hash);
-    alert("✅ Manufacturer stored on blockchain!");
   } catch (error) {
     console.error("❌ Error storing on blockchain:", error);
     throw new Error("Failed to store on blockchain");
