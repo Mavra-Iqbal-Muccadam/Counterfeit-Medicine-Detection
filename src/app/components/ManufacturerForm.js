@@ -1,20 +1,30 @@
 "use client";
 import { useState } from "react";
-import {
-  TextField,
-  Button,
-  Typography,
-  Checkbox,
-  FormControlLabel,
-  Box,
-  Container,
-  CircularProgress,
-  Paper,
-} from "@mui/material";
+import { Container, Paper, Box, TextField, Button, FormControlLabel, Checkbox, CircularProgress, Typography, Grid, Tooltip } from '@mui/material';
 import Image from "next/image";
-import { SuccessMsgBox, ErrorMsgBox } from '../components/MsgBox';
+import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from '../components/MsgBox';
+import { storeManufacturerData } from "../testingblockchain/manufactureregistration/submit"; // Import the blockchain function
 
 const ManufacturerForm = () => {
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      licenceNo: "",
+      email: "",
+      phone: "",
+      website: "",
+      dateOfIssue: "",
+      physicalAddress: "",
+      walletAddress: "",
+      certificationNumber: "",
+      certificationBytea: "",
+    });
+    setCertification(null);
+    setFileUrl(null);
+    setPrivacyChecked(false);
+    setErrors({});
+  };
+
   const [formData, setFormData] = useState({
     name: "",
     licenceNo: "",
@@ -35,29 +45,39 @@ const ManufacturerForm = () => {
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [successMsg, setSuccessMsg] = useState({ open: false, message: '', routeButton: null });
   const [errorMsg, setErrorMsg] = useState({ open: false, message: '' });
+  const [infoMsg, setInfoMsg] = useState({ open: false, message: '' }); // For processing message
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      licenceNo: "",
-      email: "",
-      phone: "",
-      website: "",
-      dateOfIssue: "",
-      physicalAddress: "",
-      walletAddress: "",
-      certificationNumber: "",
-      certificationBytea: "",
-    });
-    setCertification(null);
-    setFileUrl(null);
-    setPrivacyChecked(false);
-    setErrors({});
+  const validateField = (name, value) => {
+    switch (name) {
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!value) return "Email is required.";
+        if (!emailRegex.test(value)) return "Please enter a valid email address.";
+        return "";
+      case "phone":
+        if (!value) return "Phone number is required.";
+        if (!/^\d+$/.test(value)) return "Phone number should contain only numbers.";
+        return "";
+      case "walletAddress":
+        const walletRegex = /^0x[a-fA-F0-9]{40}$/;
+        if (!value) return "Wallet address is required.";
+        if (!walletRegex.test(value)) return "Invalid wallet address! Please enter a valid Ethereum address.";
+        return "";
+      case "licenceNo":
+        if (!value) return "Licence number is required.";
+        return "";
+      case "physicalAddress":
+        if (!value) return "Physical address is required.";
+        return "";
+      default:
+        return "";
+    }
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+    const error = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
 
     if (type === "checkbox") {
       setPrivacyChecked(checked);
@@ -81,12 +101,15 @@ const ManufacturerForm = () => {
       formData.append("certification", file);
 
       try {
+        setInfoMsg({ open: true, message: "Processing certificate..." }); // Show processing message
         const response = await fetch("/api/certificateupload/certificateupload", {
           method: "POST",
           body: formData,
         });
 
         const result = await response.json();
+        console.log("✅ Extracted Data:", result.extractedData); // Print extracted data
+
         if (response.ok) {
           setFormData((prev) => ({
             ...prev,
@@ -97,11 +120,14 @@ const ManufacturerForm = () => {
             dateOfIssue: result.extractedData.date_of_issue || "",
             certificationBytea: result.certificationBytea || "",
           }));
+          setSuccessMsg({ open: true, message: "✅ Certificate uploaded successfully!" }); // Show success message
         } else {
           setErrorMsg({ open: true, message: `❌ Error: ${result.message}` });
         }
       } catch (error) {
         setErrorMsg({ open: true, message: "❌ Error uploading certificate." });
+      } finally {
+        setInfoMsg({ open: false, message: '' }); // Hide processing message
       }
     }
   };
@@ -110,21 +136,15 @@ const ManufacturerForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!formData.email || !formData.phone) {
-      setErrorMsg({ open: true, message: "❌ Email and phone are required." });
-      setIsSubmitting(false);
-      return;
-    }
+    // Validate all fields
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key]);
+      if (error) newErrors[key] = error;
+    });
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setErrorMsg({ open: true, message: "❌ Please enter a valid email address." });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!/^\d+$/.test(formData.phone)) {
-      setErrorMsg({ open: true, message: "❌ Phone number should contain only numbers." });
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       setIsSubmitting(false);
       return;
     }
@@ -136,62 +156,55 @@ const ManufacturerForm = () => {
     }
 
     try {
-      const response = await fetch("/api/certificateupload/savedata", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: { "Content-Type": "application/json" },
-      });
+      // Prepare data for blockchain
+      const blockchainData = {
+        email: formData.email,
+        pdf: certification,
+        manufacturerName: formData.name,
+        dateOfIssue: formData.dateOfIssue,
+        licenceNo: formData.licenceNo,
+        phoneNumber: formData.phone,
+        physicalAddress: formData.physicalAddress,
+        website: formData.website,
+        walletAddress: formData.walletAddress,
+        certificationNumber: formData.certificationNumber,
+        privacyPolicy: privacyChecked,
+      };
 
-      const result = await response.json();
-      if (response.ok) {
-        setSuccessMsg({
-          open: true,
-          message: "✅ Your Application has been received!",
-          routeButton: { path: "/userlogin", label: "Go to Login" },
-        });
-        resetForm();
-      } else {
-        setErrorMsg({ open: true, message: result.message || "❌ Error registering user." });
-      }
+      // Call the blockchain function
+      await storeManufacturerData(blockchainData);
+
+      // Show success message
+      setSuccessMsg({
+        open: true,
+        message: "✅ Your Application has been received!",
+        routeButton: { path: "/manufacturerlogin", label: "Go to Login" },
+      });
+      resetForm(); // Reset the form fields
     } catch (error) {
+      console.error("❌ Error submitting form:", error);
       setErrorMsg({ open: true, message: "❌ Error submitting form. Please try again later." });
     } finally {
       setIsSubmitting(false);
     }
   };
-   
 
   return (
     <Box
       sx={{
         overflow: "hidden",
         position: "fixed",
-        
         width: "100vw",
-        minHeight: "120vh", // Increased height for full image visibility
-        overflow: "hidden",
+        minHeight: "120vh",
         backgroundImage: "url('/final.avif')",
-        
-        backgroundSize: "cover", // Prevents duplication, fits the screen
-       
-
-        backgroundPosition: " center", // Centers the image properly
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        
-        backgroundSize: "100% 100%", // Ensures it stretches fully
-        
-
-        
         height: "100vh",
-
-        
-
       }}
     >
-      
-      
       {/* Navbar */}
       <Box
         sx={{
@@ -203,11 +216,9 @@ const ManufacturerForm = () => {
           alignItems: "center",
           position: "fixed",
           top: 0,
-          zIndex: 1500,
+          zIndex: 1500, // Navbar z-index
           height: "60px",
           boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-     
-          
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -225,88 +236,251 @@ const ManufacturerForm = () => {
       </Box>
 
       <Container
-        maxWidth="sm"
+        maxWidth="md" // Increased width
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          minHeight: "calc(100vh - 80px)",
-          marginTop: "50px",
-          marginRight: "50px", 
-          marginLeft:"50px",
-          marginTop:"150px",
-          
+          minHeight: "calc(100vh - 150px)",
+          marginTop: "140px",
         }}
       >
         <Paper
           elevation={3}
           sx={{
             p: 3,
-    width: "100%",
-    maxWidth: "400px",
-    maxHeight: "80vh", // Limits height
-    overflowY: "auto", // Enables internal scrolling
-    borderRadius: 2,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    backdropFilter: "blur(8px)",
-
+            width: "100%",
+            maxWidth: "900px", // Increased width
+            maxHeight: "84vh",
+            overflowY: "auto",
+            borderRadius: 2,
+            backgroundColor: "rgba(255, 255, 255)", // Translucent background
+            backdropFilter: "blur(8px)",
           }}
         >
-          <Image
-            src="/yar.jpg"
-            alt="Manufacturer Registration"
-            width={300}
-            height={150}
-            style={{
-              marginBottom: "10px",
-              marginLeft: "auto",
-              marginRight: "auto",
-              display: "block",
-              objectFit: "cover",
-              width: "100%",
-              height: "auto",
+          {/* Image and Heading */}
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="h4" sx={{ fontWeight: "bold" }}> {/* Heading on the left */}
+              Manufacturer Registration
+            </Typography>
+            <Image
+              src="/yar.png"
+              alt="Manufacturer Registration"
+              width={200} // Smaller image
+              height={180} // Smaller image
+              style={{
+                objectFit: "cover",
+                borderRadius: "20px",
+              }}
+            />
+          </Box>
 
-            
-              
-            }}
-          />
-          <Box component="form" sx={{ mt: 2 }}>
-            <TextField fullWidth margin="dense" label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required />
-            {/* File Upload */}
-            <Button fullWidth variant="contained" component="label" sx={{ mt: 2, mb: 2 }}>
-              📄 Upload PDF
-              <input type="file" id="pdfUpload" name="certification" accept="application/pdf" hidden onChange={handleFileUpload} />
-            </Button>
-            {fileUrl && (
-              <Box sx={{ mt: 2, mb: 2 }}>
-                <embed src={fileUrl} type="application/pdf" width="100%" height="300px" />
-              </Box>
-            )}
-            <TextField fullWidth margin="normal" label="Manufacturer Name" name="name" value={formData.name} onChange={handleChange} />
-            <TextField fullWidth margin="normal" label="Date of Issue" name="dateOfIssue" type="date" value={formData.dateOfIssue} onChange={handleChange} InputLabelProps={{ shrink: true }} />
-            <TextField fullWidth margin="normal" label="Licence No." name="licenceNo" value={formData.licenceNo} onChange={handleChange} />
-            <TextField fullWidth margin="normal" label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} required />
-            <TextField fullWidth margin="normal" label="Physical Address" name="physicalAddress" value={formData.physicalAddress} onChange={handleChange} />
-            <TextField fullWidth margin="normal" label="Website (Optional)" name="website" value={formData.website} onChange={handleChange} />
-            <TextField fullWidth margin="normal" label="Wallet Address" name="walletAddress" value={formData.walletAddress} onChange={handleChange} required />
-            <TextField fullWidth margin="normal" label="Certification Number" name="certificationNumber" value={formData.certificationNumber} InputProps={{ readOnly: true }} />
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* Upload PDF Button */}
+            <Tooltip title="Upload the manufacturer proof of certificate" arrow>
+              <Button
+                variant="contained"
+                component="label"
+                sx={{ width: "30%", height: "50px" }} // Shortened button
+              >
+                📄 Upload PDF
+                <input type="file" id="pdfUpload" name="certification" accept="application/pdf" hidden onChange={handleFileUpload} />
+              </Button>
+            </Tooltip>
 
-            
+            {/* Form Fields */}
+            <Grid container spacing={1}> {/* Reduced spacing between fields */}
+              {/* Email */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal" // Changed to match other fields
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            {/* Privacy Policy Checkbox */}
-            <FormControlLabel control={<Checkbox checked={privacyChecked} onChange={handleChange} name="privacyChecked" />} label="I accept the privacy policy." sx={{ mt: 2 }} />
+              {/* Manufacturer Name */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Manufacturer Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
 
-            {/* Submit Button */}
-            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting} fullWidth sx={{ mt: 2, mb: 2 }}>
-              {isSubmitting ? <CircularProgress size={24} /> : "Register Manufacturer"}
-            </Button>
+              {/* Date of Issue */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Date of Issue"
+                  name="dateOfIssue"
+                  type="date"
+                  value={formData.dateOfIssue}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true, required: false }} // Remove asterisk
+                  error={!!errors.dateOfIssue}
+                  helperText={errors.dateOfIssue}
+                  required
+                />
+              </Grid>
 
-            {/* Success and Error Message Boxes */}
-            <SuccessMsgBox open={successMsg.open} onClose={() => setSuccessMsg({ ...successMsg, open: false })} message={successMsg.message} routeButton={successMsg.routeButton} />
-            <ErrorMsgBox open={errorMsg.open} onClose={() => setErrorMsg({ ...errorMsg, open: false })} message={errorMsg.message} />
+              {/* Licence No. */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Licence No."
+                  name="licenceNo"
+                  value={formData.licenceNo}
+                  onChange={handleChange}
+                  error={!!errors.licenceNo}
+                  helperText={errors.licenceNo}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Phone Number */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Phone Number"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  error={!!errors.phone}
+                  helperText={errors.phone}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Physical Address */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Physical Address"
+                  name="physicalAddress"
+                  value={formData.physicalAddress}
+                  onChange={handleChange}
+                  error={!!errors.physicalAddress}
+                  helperText={errors.physicalAddress}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Website */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Website (Optional)"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleChange}
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Wallet Address */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Wallet Address"
+                  name="walletAddress"
+                  value={formData.walletAddress}
+                  onChange={handleChange}
+                  error={!!errors.walletAddress}
+                  helperText={errors.walletAddress}
+                  required
+                  InputLabelProps={{ required: false }} // Remove asterisk
+                />
+              </Grid>
+
+              {/* Certification Number */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Certification Number"
+                  name="certificationNumber"
+                  value={formData.certificationNumber}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Privacy Policy Checkbox and Submit Button */}
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mt: 2 }}>
+              <FormControlLabel
+                control={<Checkbox checked={privacyChecked} onChange={handleChange} name="privacyChecked" />}
+                label="I accept the privacy policy."
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isSubmitting}
+                sx={{ padding: "10px 30px" }}
+              >
+                {isSubmitting ? <CircularProgress size={24} /> : "Register Manufacturer"}
+              </Button>
+            </Box>
           </Box>
         </Paper>
       </Container>
+
+      {/* Success, Error, and Info Messages */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 2000, // Higher than navbar's z-index
+          pointerEvents: "none", // Allow clicks to pass through when closed
+        }}
+      >
+        <SuccessMsgBox
+          open={successMsg.open}
+          onClose={() => setSuccessMsg({ ...successMsg, open: false })}
+          message={successMsg.message}
+          routeButton={successMsg.routeButton}
+        />
+        <ErrorMsgBox
+          open={errorMsg.open}
+          onClose={() => setErrorMsg({ ...errorMsg, open: false })}
+          message={errorMsg.message}
+        />
+        <InfoMsgBox
+          open={infoMsg.open}
+          onClose={() => setInfoMsg({ ...infoMsg, open: false })}
+          message={infoMsg.message}
+        />
+      </Box>
     </Box>
   );
 };
