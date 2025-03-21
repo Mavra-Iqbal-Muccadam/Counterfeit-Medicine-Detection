@@ -43,14 +43,13 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-<<<<<<< HEAD
+
     "react-router-dom": "^7.3.0",
-    "recharts": "^2.15.1",
-=======
+ 
     "react-qr-code": "^2.0.15",
     "recharts": "^2.15.1",
     "replicate": "^1.0.1",
->>>>>>> cf29b887f5770a558ea2640f9fd533751577f2ab
+
     "styled-components": "^6.1.15"
   },
   "devDependencies": {
