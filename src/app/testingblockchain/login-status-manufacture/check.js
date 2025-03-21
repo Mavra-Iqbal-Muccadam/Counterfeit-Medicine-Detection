@@ -54,7 +54,6 @@ export async function loginWithMetaMask() {
     return isApproved ? "Login Successful ✅" : "Login Failed ❌ (Not Approved)";
   } catch (error) {
     console.error("❌ Error during login:", error);
-    alert("Login failed.");
     return "Login failed";
   }
 }
