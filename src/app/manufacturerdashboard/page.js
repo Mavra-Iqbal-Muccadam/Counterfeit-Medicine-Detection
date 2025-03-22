@@ -22,7 +22,7 @@ import Modal from "@mui/material/Modal";
 import AddIcon from "@mui/icons-material/Add";
 import MedicineForm from '../testpage3/page';
 
-import { fetchPendingMedicines } from "../pendingmedicine/fetchfunction"; 
+// import { fetchPendingMedicines } from "../pendingmedicine/fetchfunction"; 
 
 
 
@@ -191,12 +191,12 @@ const ManufacturerDashboard = () => {
 
 
   // edited by aleeza
-  useEffect(() => {
-    if (activeTab === "pending") {
-      fetchPendingMedicines().then(setPendingMedicines);
-      console.log
-    }
-  }, [activeTab]); // Fetch pending medicines when the active tab changes
+  // useEffect(() => {
+  //   if (activeTab === "pending") {
+  //     fetchPendingMedicines().then(setPendingMedicines);
+  //     console.log
+  //   }
+  // }, [activeTab]); // Fetch pending medicines when the active tab changes
 
 
 

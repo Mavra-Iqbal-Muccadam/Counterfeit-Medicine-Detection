@@ -185,84 +185,32 @@ const ManufacturerLogin = () => {
                         Submit
                     </Button>
 
-                <Button
-                    variant="contained"
-                    onClick={handleMetaMaskLogin}
-                    sx={{ mt: 2, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}
-                >
-                    Login With MetaMask
-                </Button>
+                    <Button
+    variant="contained"
+    onClick={handleMetaMaskLogin}
+    sx={{ 
+        mt: 2, 
+        width: "80%", 
+        borderRadius: "15px", 
+        fontSize: "0.85rem", 
+        padding: "6px", 
+        display: "flex", 
+        alignItems: "center",
+        gap: 1
+    }}
+>
+    
+    Login With MetaMask
+    <Image 
+        src="/metamask.png" // Ensure this image is placed in the public/ directory
+        alt="MetaMask Logo" 
+        width={24} 
+        height={24} 
+    />
+</Button>
+
                 </Box>
             </Container>
-
-            {/* Invalid Address Modal */}
-            <Dialog open={modalOpen} onClose={handleCloseModal} sx={{ '& .MuiPaper-root': { borderRadius: 5, padding: 3, backgroundColor: "#f8d7da", textAlign: "center" } }}>
-                <DialogTitle sx={{ color: "#721c24", fontWeight: "bold" }}>Invalid Wallet Address</DialogTitle>
-                <DialogContent>
-                    <Typography>Please enter a valid Ethereum wallet address.</Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: "center" }}>
-                    <Button onClick={handleCloseModal} variant="contained" sx={{ bgcolor: "#721c24", color: "#fff" }}>Close</Button>
-                </DialogActions>
-            </Dialog>
-
-            {/* Status Modal */}
-            <Dialog 
-    open={statusModalOpen} 
-    onClose={handleCloseStatusModal} 
-    sx={{ 
-        '& .MuiPaper-root': { 
-            borderRadius: 10, 
-            padding: 5, 
-            backgroundColor: "#f9f9f9", 
-            boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.3)", 
-            textAlign: "center",
-            minWidth: "350px"
-            
-        } 
-    }}
->
-
-                <DialogTitle sx={{ fontSize: "1.5rem", fontWeight: "bold", color: statusColor }}>Status</DialogTitle>
-                <DialogContent>
-                    <Typography sx={{ color: statusColor, fontWeight: "bold", fontSize: "1.8rem" }}>
-                        {status}
-                    </Typography>
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: "center" }}>
-                    <Button onClick={handleCloseStatusModal} variant="contained" sx={{ bgcolor: statusColor, color: "#fff", fontWeight: "bold" }}>OK</Button>
-                </DialogActions>
-            </Dialog>
-
-            <Dialog 
-    open={metaMaskErrorModalOpen} 
-    onClose={() => setMetaMaskErrorModalOpen(false)}
-    sx={{ 
-        '& .MuiPaper-root': { 
-            borderRadius: 10, 
-            padding: 5, 
-            backgroundColor: "#f9f9f9", 
-            boxShadow: "0px 8px 20px rgba(0, 0, 0, 0.3)", 
-            textAlign: "center",
-            minWidth: "350px"
-        } 
-    }}
->
-    <DialogTitle sx={{ fontSize: "1.5rem", fontWeight: "bold", color: "#F44336" }}>
-        MetaMask Login Failed
-    </DialogTitle>
-    <DialogContent>
-        <Typography sx={{ color: "#F44336", fontWeight: "bold", fontSize: "1.2rem" }}>
-            {metaMaskErrorMessage}
-        </Typography>
-    </DialogContent>
-    <DialogActions sx={{ justifyContent: "center" }}>
-        <Button onClick={() => setMetaMaskErrorModalOpen(false)} variant="contained" sx={{ bgcolor: "#F44336", color: "#fff", fontWeight: "bold" }}>
-            OK
-        </Button>
-    </DialogActions>
-</Dialog>
-
         </>
     );
 };
