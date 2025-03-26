@@ -14,6 +14,17 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 export const SuccessMsgBox = ({ open, onClose, message, routeButton }) => {
   const router = useRouter();
 
+  React.useEffect(() => {
+    if (open && routeButton) {
+        const timer = setTimeout(() => {
+            onClose();
+            router.push(routeButton.path);
+        }, 3000); // Redirect after 3 seconds
+        
+        return () => clearTimeout(timer);
+    }
+}, [open, routeButton, router, onClose]);
+
   return (
     <Snackbar
       open={open}

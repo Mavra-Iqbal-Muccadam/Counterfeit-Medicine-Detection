@@ -10,8 +10,11 @@ import axios from "axios";
 import ManufacturerSlideshow from "./ManufacturerSlideshow";
 import ChartsSection from "./ChartsSection";
 import { getPendingManufacturers, getApprovedManufacturers, getRejectedManufacturers } from "../../testingblockchain/accepted-rejected-manufacturer/fetch"; // Import blockchain functions
+import {updateManufacturerStatus}  from '../../testingblockchain/pendingmanufacture/fetch';
 import { SuccessMsgBox, ErrorMsgBox } from "../../components/MsgBox"; // Import alert components
 import "../admin.css";
+
+
 
 const ManufacturerPage = ({ activeSection, handleSectionChange }) => {
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
@@ -27,8 +30,8 @@ const ManufacturerPage = ({ activeSection, handleSectionChange }) => {
   });
   const [successAlert, setSuccessAlert] = useState({ open: false, message: "" });
   const [errorAlert, setErrorAlert] = useState({ open: false, message: "" });
-
-  useEffect(() => {
+  
+ useEffect(() => {
     const fetchAdminData = async () => {
       const adminEmail = localStorage.getItem("adminEmail");
       if (adminEmail) {
@@ -80,39 +83,58 @@ const ManufacturerPage = ({ activeSection, handleSectionChange }) => {
     }
   };
 
-  const handleAcceptClick = async (id) => {
+  const handleAcceptClick = async (tokenId) => {
     try {
-      await acceptManufacturer(id); // Call blockchain function to accept manufacturer
-  
-      // Re-fetch data
-      const pending = await getPendingManufacturers();
-      const approved = await getApprovedManufacturers();
-  
-      // Update state
-      setPendingManufacturers(pending);
-      setAcceptedManufacturers(approved);
-      setSuccessAlert({ open: true, message: "Manufacturer approved successfully!" });
+      // Call blockchain function to update status
+      const success = await updateManufacturerStatus(tokenId, "Approved");
+      
+      if (success) {
+        // Refresh the data
+        const pending = await getPendingManufacturers();
+        const approved = await getApprovedManufacturers();
+        
+        // Update state
+        setPendingManufacturers(pending);
+        setAcceptedManufacturers(approved);
+        setSuccessAlert({ open: true, message: "Manufacturer approved successfully!" });
+      }
     } catch (error) {
       console.error("Error accepting manufacturer:", error);
       setErrorAlert({ open: true, message: "Failed to approve manufacturer." });
     }
   };
   
-  const handleReject = async (id) => {
+  const handleReject = async (tokenId) => {
     try {
-      await rejectManufacturer(id); // Call blockchain function to reject manufacturer
-  
-      // Re-fetch data
-      const pending = await getPendingManufacturers();
-      const rejected = await getRejectedManufacturers();
-  
-      // Update state
-      setPendingManufacturers(pending);
-      setRejectedManufacturers(rejected);
-      setSuccessAlert({ open: true, message: "Manufacturer rejected successfully!" });
+      // Find the manufacturer to get wallet address
+      const manufacturer = pendingManufacturers.find(m => m.tokenId === tokenId);
+      
+      if (!manufacturer) {
+        throw new Error("Manufacturer not found");
+      }
+
+      // Call blockchain function to update status
+      const success = await updateManufacturerStatus(tokenId, "Rejected");
+      
+      if (success) {
+        // Refresh the data
+        const pending = await getPendingManufacturers();
+        const rejected = await getRejectedManufacturers();
+        
+        // Update state
+        setPendingManufacturers(pending);
+        setRejectedManufacturers(rejected);
+        setSuccessAlert({ 
+          open: true, 
+          message: "Manufacturer rejected successfully!" 
+        });
+      }
     } catch (error) {
       console.error("Error rejecting manufacturer:", error);
-      setErrorAlert({ open: true, message: "Failed to reject manufacturer." });
+      setErrorAlert({ 
+        open: true, 
+        message: "Failed to reject manufacturer." 
+      });
     }
   };
 
@@ -238,22 +260,22 @@ const ManufacturerPage = ({ activeSection, handleSectionChange }) => {
         activeSection === "acceptedManufacturers" ||
         activeSection === "rejectedManufacturers" ? (
           <ManufacturerSlideshow
-            manufacturers={
-              activeSection === "acceptedManufacturers"
-                ? acceptedManufacturers
-                : activeSection === "rejectedManufacturers"
-                ? rejectedManufacturers
-                : pendingManufacturers
-            }
-            activeSection={activeSection}
-            handleView={handleView}
-            handleAccept={handleAcceptClick}
-            handleReject={handleReject}
-            selectedManufacturer={selectedManufacturer}
-            setSelectedManufacturer={setSelectedManufacturer}
-            authenticityScore={authenticityScore}
-            setAuthenticityScore={setAuthenticityScore} // Pass setAuthenticityScore to ManufacturerSlideshow
-          />
+  manufacturers={
+    activeSection === "acceptedManufacturers"
+      ? acceptedManufacturers
+      : activeSection === "rejectedManufacturers"
+      ? rejectedManufacturers
+      : pendingManufacturers
+  }
+  activeSection={activeSection}
+  handleView={handleView}
+  handleAccept={handleAcceptClick}
+  handleReject={handleReject} // Pass the handleReject function
+  selectedManufacturer={selectedManufacturer}
+  setSelectedManufacturer={setSelectedManufacturer}
+  authenticityScore={authenticityScore}
+  setAuthenticityScore={setAuthenticityScore}
+/>
         ) : activeSection === "manufacturerAnalytics" ? (
           <ChartsSection
             pendingManufacturers={pendingManufacturers}

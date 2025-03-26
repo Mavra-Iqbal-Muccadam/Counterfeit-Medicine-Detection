@@ -135,26 +135,27 @@ const ManufacturerForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    setErrorMsg({ open: false, message: "" }); // Clear previous errors
+  
     // Validate all fields
     const newErrors = {};
     Object.keys(formData).forEach((key) => {
       const error = validateField(key, formData[key]);
       if (error) newErrors[key] = error;
     });
-
+  
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setIsSubmitting(false);
       return;
     }
-
+  
     if (!privacyChecked) {
       setErrorMsg({ open: true, message: "❌ You must agree to the privacy policy." });
       setIsSubmitting(false);
       return;
     }
-
+  
     try {
       // Prepare data for blockchain
       const blockchainData = {
@@ -170,22 +171,26 @@ const ManufacturerForm = () => {
         certificationNumber: formData.certificationNumber,
         privacyPolicy: privacyChecked,
       };
-
-      // Call the blockchain function
-      await storeManufacturerData(blockchainData);
-
+  
+      // Call the blockchain function with setInfoMsg
+      await storeManufacturerData(blockchainData, setInfoMsg);
+  
       // Show success message
       setSuccessMsg({
         open: true,
         message: "✅ Your Application has been received!",
         routeButton: { path: "/manufacturerlogin", label: "Go to Login" },
       });
-      resetForm(); // Reset the form fields
+      resetForm();
     } catch (error) {
       console.error("❌ Error submitting form:", error);
-      setErrorMsg({ open: true, message: "❌ Error submitting form. Please try again later." });
+      setErrorMsg({ 
+        open: true, 
+        message: error.message || "❌ Error submitting form. Please try again later." 
+      });
     } finally {
       setIsSubmitting(false);
+      setInfoMsg({ open: false, message: "" }); // Ensure info message is closed
     }
   };
 

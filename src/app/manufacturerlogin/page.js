@@ -14,6 +14,12 @@ const ManufacturerLogin = () => {
     const [errorOpen, setErrorOpen] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     const [metaMaskErrorMessage, setMetaMaskErrorMessage] = useState("");
+    const [successAlert, setSuccessAlert] = useState({
+        open: false,
+        message: "",
+        routeButton: null
+    });
+
 
     const handleInputChange = (event) => {
         const walletRegex = /^0x[a-fA-F0-9]{40}$/;
@@ -60,13 +66,22 @@ const ManufacturerLogin = () => {
         if (result === "Login Successful ✅") {
             setStatus(result);
             setStatusColor("#4CAF50");
-            setSuccessOpen(true);
+            
+            // Update to use setSuccessAlert
+            setSuccessAlert({
+                open: true,
+                message: "Login successful! Redirecting to dashboard...",
+                routeButton: {
+                    path: "/manufacturerdashboard",
+                    label: "Go to Dashboard"
+                }
+            });
         } else {
             setMetaMaskErrorMessage(result);
             setErrorOpen(true);
         }
     };
-
+    
     const handleCloseSuccess = () => {
         setSuccessOpen(false);
     };
@@ -104,11 +119,12 @@ const ManufacturerLogin = () => {
 
             {/* Message Boxes (Above Navbar) */}
             <Box sx={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 2000 }}>
-                <SuccessMsgBox
-                    open={successOpen}
-                    onClose={handleCloseSuccess}
-                    message={status}
-                />
+            <SuccessMsgBox
+            open={successAlert.open}
+            onClose={() => setSuccessAlert({ ...successAlert, open: false })}
+            message={successAlert.message}
+            routeButton={successAlert.routeButton}
+        />
                 <ErrorMsgBox
                     open={errorOpen}
                     onClose={handleCloseError}

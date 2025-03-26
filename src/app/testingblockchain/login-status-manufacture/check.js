@@ -27,7 +27,6 @@ export async function getManufacturerStatus(walletAddress) {
     return statusMapping[statusEnum];
   } catch (error) {
     console.error("❌ Error fetching status:", error);
-    alert("Failed to fetch status.");
     return null;
   }
 }
@@ -51,7 +50,7 @@ export async function loginWithMetaMask() {
     const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, provider);
 
     const isApproved = await contract.login(userWallet);
-    return isApproved ? "Login Successful ✅" : "Login Failed ❌ (Not Approved)";
+    return isApproved ? "Login Successful ✅" : "Login Failed ❌ (Manufacturer Not Approved)";
   } catch (error) {
     console.error("❌ Error during login:", error);
     return "Login failed";

@@ -16,9 +16,11 @@ import {
   TableHead,
   TableRow,
   LinearProgress,
+  TextField 
 } from "@mui/material";
 import { getManufacturersByStatus } from "../../testingblockchain/accepted-rejected-manufacturer/fetch"; // Import the function to fetch manufacturers by status
 import axios from "axios"; // Import axios for API calls
+import { rejectManufacturer } from "../../../../lib/adminmanufacturerfetch";
 
 const ManufacturerSlideshow = ({
   manufacturers,
@@ -33,6 +35,9 @@ const ManufacturerSlideshow = ({
 }) => {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [filteredManufacturers, setFilteredManufacturers] = useState([]);
+  const [rejectionComment, setRejectionComment] = useState("");
+  const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [manufacturerToReject, setManufacturerToReject] = useState(null);
 
   // Column mapping for manufacturer details
   const columnNameMapping = {
@@ -78,17 +83,15 @@ const ManufacturerSlideshow = ({
     const selected = filteredManufacturers.find((m) => m.tokenId === manufacturerId);
     if (selected) {
       setSelectedManufacturer(selected);
-      setDetailsModalOpen(true); // Open the details modal
-
-      // Check website authenticity if website exists
+      setDetailsModalOpen(true);
+      
       if (selected.website) {
         await checkWebsiteAuthenticity(selected.website);
       } else {
-        setAuthenticityScore(0); // Set score to 0 if no website is provided
+        setAuthenticityScore(0);
       }
     }
   };
-
   // Handle View PDF button click
   const handleViewPDF = (pdfCID) => {
     if (pdfCID) {
@@ -104,12 +107,25 @@ const ManufacturerSlideshow = ({
       } else if (newStatus === "Rejected") {
         await handleReject(tokenId);
       }
-      setDetailsModalOpen(false); // Close the modal after updating status
+      setDetailsModalOpen(false);
+      
+      // Refresh the manufacturers list after status update
+      const status = activeSection === "pendingManufacturers" ? "Pending" :
+                     activeSection === "acceptedManufacturers" ? "Approved" :
+                     activeSection === "rejectedManufacturers" ? "Rejected" : null;
+      if (status) {
+        const data = await getManufacturersByStatus(status);
+        const updatedData = data.map((manufacturer) => ({
+          ...manufacturer,
+          status: status,
+        }));
+        setFilteredManufacturers(updatedData);
+      }
     } catch (error) {
       console.error("Error updating manufacturer status:", error);
     }
   };
-
+  
   // Check website authenticity
   const checkWebsiteAuthenticity = async (websiteUrl) => {
     try {
@@ -123,6 +139,53 @@ const ManufacturerSlideshow = ({
     } catch (error) {
       console.error("Error checking website authenticity:", error); // Debug
       setAuthenticityScore(0); // Set score to 0 if there's an error
+    }
+  };
+
+  const handleRejectClick = (tokenId) => {
+    setManufacturerToReject(tokenId);
+    setShowRejectionDialog(true);
+  };
+  const handleRejectWithComment = async (tokenId) => {
+    setManufacturerToReject(tokenId);
+    setShowRejectionDialog(true);
+  };
+  const confirmRejection = async () => {
+    try {
+      const manufacturer = filteredManufacturers.find(m => m.tokenId === manufacturerToReject);
+      if (!manufacturer) {
+        throw new Error("Manufacturer not found");
+      }
+  
+      // Debug log before calling rejectManufacturer
+      console.log('Rejecting manufacturer:', {
+        walletAddress: manufacturer.walletAddress,
+        comment: rejectionComment
+      });
+  
+      await rejectManufacturer(
+        manufacturer.walletAddress,
+        rejectionComment
+      );
+  
+      await handleReject(manufacturerToReject);
+  
+      // Refresh data
+      const status = "Rejected";
+      const data = await getManufacturersByStatus(status);
+      setFilteredManufacturers(data.map(m => ({ ...m, status })));
+  
+      setShowRejectionDialog(false);
+      setRejectionComment("");
+      setManufacturerToReject(null);
+  
+    } catch (error) {
+      console.error("Complete rejection error:", {
+        error: error.message,
+        stack: error.stack
+      });
+      // Show user-friendly error message
+      alert(`Rejection failed: ${error.message}`);
     }
   };
 
@@ -169,33 +232,14 @@ const ManufacturerSlideshow = ({
                 <TableCell>{manufacturer.licenceNo}</TableCell>
                 <TableCell>{manufacturer.status}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleViewDetails(manufacturer.tokenId)}
-                    sx={{ backgroundColor: "#016A70", color: "#fff", mr: 1 }}
-                  >
-                    View Details
-                  </Button>
-                  {/* Show Accept/Reject buttons only for Pending manufacturers */}
-                  {activeSection === "pendingManufacturers" && manufacturer.status === "Pending" && (
-                    <>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleStatusUpdate(manufacturer.tokenId, "Approved")}
-                        sx={{ backgroundColor: "#00C851", color: "#fff", mr: 1 }}
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleStatusUpdate(manufacturer.tokenId, "Rejected")}
-                        sx={{ backgroundColor: "#ff4444", color: "#fff" }}
-                      >
-                        Reject
-                      </Button>
-                    </>
-                  )}
-                </TableCell>
+  <Button
+    variant="contained"
+    onClick={() => handleViewDetails(manufacturer.tokenId)}
+    sx={{ backgroundColor: "#016A70", color: "#fff", mr: 1 }}
+  >
+    View Details
+  </Button>
+</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -283,19 +327,19 @@ const ManufacturerSlideshow = ({
               {activeSection === "pendingManufacturers" && selectedManufacturer.status === "Pending" && (
                 <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 3 }}>
                   <Button
-                    variant="contained"
-                    onClick={() => handleStatusUpdate(selectedManufacturer.tokenId, "Approved")}
-                    sx={{ backgroundColor: "#00C851", color: "#fff" }}
-                  >
-                    Accept
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleStatusUpdate(selectedManufacturer.tokenId, "Rejected")}
-                    sx={{ backgroundColor: "#ff4444", color: "#fff" }}
-                  >
-                    Reject
-                  </Button>
+            variant="contained"
+            onClick={() => handleStatusUpdate(selectedManufacturer.tokenId, "Approved")}
+            sx={{ backgroundColor: "#00C851", color: "#fff" }}
+          >
+            Accept
+          </Button>
+          <Button
+    variant="contained"
+    onClick={() => handleRejectClick(selectedManufacturer.tokenId)}
+    sx={{ backgroundColor: "#ff4444", color: "#fff" }}
+  >
+    Reject
+  </Button>
                 </Box>
               )}
             </Box>
@@ -304,6 +348,38 @@ const ManufacturerSlideshow = ({
         <DialogActions>
           <Button onClick={() => setDetailsModalOpen(false)}>Close</Button>
         </DialogActions>
+      </Dialog>
+      <Dialog
+        open={showRejectionDialog}
+        onClose={() => {
+          setShowRejectionDialog(false);
+          setRejectionComment("");
+        }}
+      >
+        <DialogTitle>Add Rejection Reason</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Rejection Comments"
+            fullWidth
+            variant="standard"
+            multiline
+            rows={4}
+            value={rejectionComment}
+            onChange={(e) => setRejectionComment(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+  <Button onClick={() => setShowRejectionDialog(false)}>Cancel</Button>
+  <Button 
+    onClick={confirmRejection}
+    color="error"
+    disabled={!rejectionComment.trim()}
+  >
+    Confirm Rejection
+  </Button>
+</DialogActions>
       </Dialog>
     </Box>
   );
