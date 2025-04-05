@@ -1,30 +1,55 @@
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
+"use client";
+import React, { useState, useEffect } from "react";
+
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import Image from "next/image";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Modal from "@mui/material/Modal";
-import AddIcon from "@mui/icons-material/Add";
-const PendingMedicinesChart = () => {
-  const data = [
-    { name: "Capsules", Capsules: 10 },
-    { name: "Tablets", Tablets: 20 },
-    { name: "Antibiotics", Antibiotics: 15 },
-    { name: "Drugs", Drugs: 25 },
+
+const PendingMedicinesChart = ({ pendingMedicines = [] }) => {
+  // Count medicines by type
+  const countByType = pendingMedicines.reduce((acc, medicine) => {
+    const type = medicine.types?.[0] || 'Other';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Prepare data for the bar chart
+  const barData = Object.entries(countByType).map(([name, value]) => ({
+    name,
+    value,
+    color: getColorForType(name)
+  }));
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) {
+    return null; // or a loading state
+  }
+
+  // Default data if empty
+  const defaultData = [
+    { name: 'Capsules', value: 0, color: '#3357FF' },
+    { name: 'Tablets', value: 0, color: '#FFA500' },
+    { name: 'Antibiotics', value: 0, color: '#a812e3' },
+    { name: 'Other', value: 0, color: '#E91E63' }
   ];
+
+  // Use actual data if available, otherwise use default
+  const displayData = barData.length > 0 ? barData : defaultData;
+
+  function getColorForType(type) {
+    const colorMap = {
+      'Capsules': '#3357FF',
+      'Tablets': '#FFA500',
+      'Antibiotics': '#a812e3',
+      'Drugs': '#E91E63',
+      'Other': '#E91E63'
+    };
+    return colorMap[type] || '#E91E63';
+  }
 
   return (
     <Box
@@ -45,21 +70,44 @@ const PendingMedicinesChart = () => {
         },
       }}
     >
-      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>Pending Medicines</Typography>
-      <BarChart width={200} height={200} data={data}>
-        <XAxis width={150} dataKey="name" tick={{ fill: "#000000" }} />
-        <YAxis tick={{ fill: "#000000" }} />
-        <Tooltip formatter={(value, name) => [`${value} pending`, name]} />
-        <Bar dataKey="Capsules" fill="#3357FF" name="Capsules" barSize={20} />
-        <Bar dataKey="Tablets" fill="#FFA500" name="Tablets" barSize={20} />
-        <Bar dataKey="Antibiotics" fill="#a812e3" name="Antibiotics" barSize={20} />
-        <Bar dataKey="Drugs" fill="#E91E63" name="Drugs" barSize={20} />
+      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>
+        Pending Medicines
+      </Typography>
+      <Typography variant="h4" sx={{ textAlign: "center", color: "#FFA500", my: 2 }}>
+        {pendingMedicines.length}
+      </Typography>
+      
+      <BarChart 
+        width={200} 
+        height={200} 
+        data={displayData}
+        margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+      >
+        <XAxis dataKey="name" tick={{ fill: "#000000", fontSize: 12 }} />
+        <YAxis tick={{ fill: "#000000", fontSize: 12 }} />
+        <Tooltip 
+          formatter={(value, name) => [`${value}`, name]} 
+          labelFormatter={(label) => `${label}`}
+        />
+        <Bar dataKey="value" name="Count">
+          {displayData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.color} />
+          ))}
+        </Bar>
       </BarChart>
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
-        {data.map((_, index) => (
+      
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2, flexWrap: 'wrap' }}>
+        {displayData.map((entry, index) => (
           <Box key={index} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box sx={{ width: 15, height: 15, backgroundColor: ["#3357FF", "#FFA500", "#a812e3", "#E91E63"][index], borderRadius: 2 }}></Box>
-            <Typography variant="body2" sx={{ color: "#000000" }}>{["Capsules", "Tablets", "Antibiotics", "Drugs"][index]}</Typography>
+            <Box sx={{ 
+              width: 15, 
+              height: 15, 
+              backgroundColor: entry.color, 
+              borderRadius: 2 
+            }} />
+            <Typography variant="body2" sx={{ color: "#000000" }}>
+              {entry.name}
+            </Typography>
           </Box>
         ))}
       </Box>

@@ -4,6 +4,7 @@ import { Container, Paper, Box, TextField, Button, FormControlLabel, Checkbox, C
 import Image from "next/image";
 import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from '../components/MsgBox';
 import { storeManufacturerData } from "../testingblockchain/manufactureregistration/submit"; // Import the blockchain function
+import NavBar from "./NavBar";
 
 const ManufacturerForm = () => {
   const resetForm = () => {
@@ -210,36 +211,7 @@ const ManufacturerForm = () => {
         height: "100vh",
       }}
     >
-      {/* Navbar */}
-      <Box
-        sx={{
-          width: "100%",
-          bgcolor: "#f0f0f0",
-          padding: "10px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "fixed",
-          top: 0,
-          zIndex: 1500, // Navbar z-index
-          height: "60px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Typography variant="body1" sx={{ cursor: "pointer" }}>Home</Typography>
-          <Typography variant="body1" sx={{ cursor: "pointer" }}>Contact Us</Typography>
-          <Typography variant="body1" sx={{ cursor: "pointer" }}>About Us</Typography>
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Image src="/healthcare (1).png" alt="Logo" width={50} height={50} />
-          <Typography variant="h6" sx={{ ml: 1 }}>
-            MediCare
-          </Typography>
-        </Box>
-      </Box>
-
+      <NavBar/>
       <Container
         maxWidth="md" // Increased width
         sx={{

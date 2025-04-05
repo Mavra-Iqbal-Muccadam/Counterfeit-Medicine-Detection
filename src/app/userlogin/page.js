@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { SuccessMsgBox, ErrorMsgBox } from "../components/MsgBox"; // Import the MsgBox components
+import NavBar from "../components/NavBar";
 
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -183,50 +184,7 @@ const Login = () => {
         </video>
       </Box>
 
-      {/* Navbar */}
-      <Box
-        sx={{
-          width: "100%",
-          bgcolor: "#004b8d",
-          padding: "10px 20px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          position: "fixed",
-          top: 0,
-          zIndex: 1500, // Lower than the MsgBox zIndex
-          height: "60px",
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-          <Typography
-            variant="body1"
-            sx={{ cursor: "pointer", color: "#ffffff" }}
-          >
-            Home
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{ cursor: "pointer", color: "#ffffff" }}
-          >
-            Contact Us
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{ cursor: "pointer", color: "#ffffff" }}
-          >
-            About Us
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <img src="/healthcare (1).png" alt="Logo" width={50} height={50} />
-          <Typography variant="h6" sx={{ ml: 1, color: "#ffffff" }}>
-            MediCare
-          </Typography>
-        </Box>
-      </Box>
-
+      <NavBar/>
       {/* Main Content */}
       <Container
         maxWidth="md"
@@ -249,8 +207,8 @@ const Login = () => {
             maxWidth: "450px",
             width: "100%",
             p: 4,
-            bgcolor: "rgba(255, 255, 255, 0.15)",
-            backdropFilter: "blur(15px)",
+            bgcolor: "rgba(255, 255, 255, 0.2)",
+            backdropFilter: "blur(50px)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
@@ -270,17 +228,18 @@ const Login = () => {
               onClick={() => setIsSignIn(true)}
               sx={{
                 borderRadius: "15px",
-                backgroundColor: isSignIn ? "#1976D2" : "transparent",
-                color: isSignIn ? "#fff" : "white",
+                backgroundColor: !isSignIn ? "white" : "#1976D2",
+                color: !isSignIn ? "#1976D2" : "white",
                 fontSize: "0.85rem",
                 padding: "6px 20px",
                 textTransform: "uppercase",
                 cursor: "pointer",
                 transition: "background-color 0.3s ease, color 0.3s ease",
-                border: "1px solid #1976D2",
+                border: !isSignIn ? "1px solid white" : "#1976D2",
                 "&:hover": {
-                  backgroundColor: isSignIn ? "#1976D2" : "white",
-                  color: isSignIn ? "#fff" : "#1976D2",
+                  backgroundColor: !isSignIn ? "white" : "#1976D2",
+                  color: !isSignIn ? "#1976D2" : "#fff",
+
                 },
               }}
             >
@@ -290,17 +249,18 @@ const Login = () => {
               onClick={() => setIsSignIn(false)}
               sx={{
                 borderRadius: "15px",
-                backgroundColor: !isSignIn ? "#1976D2" : "transparent",
-                color: !isSignIn ? "#fff" : "white",
+                backgroundColor: !isSignIn ? "#1976D2" : "white",
+                color: !isSignIn ? "white" : "#1976D2",
                 fontSize: "0.85rem",
                 padding: "6px 20px",
                 textTransform: "uppercase",
                 cursor: "pointer",
                 transition: "background-color 0.3s ease, color 0.3s ease",
-                border: "1px solid #1976D2",
+                border: !isSignIn ? "1px solid #1976D2" : "white",
                 "&:hover": {
                   backgroundColor: !isSignIn ? "#1976D2" : "white",
                   color: !isSignIn ? "#fff" : "#1976D2",
+
                 },
               }}
             >

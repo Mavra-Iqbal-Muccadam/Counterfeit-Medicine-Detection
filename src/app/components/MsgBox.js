@@ -61,24 +61,21 @@ export const SuccessMsgBox = ({ open, onClose, message, routeButton }) => {
   );
 };
 
-// Error Message Box Component
 export const ErrorMsgBox = ({ open, onClose, message }) => {
   return (
     <Snackbar
       open={open}
-      autoHideDuration={6000} // Auto-close after 6 seconds
+      autoHideDuration={10000} // Longer duration for rejection messages
       onClose={onClose}
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
     >
       <Alert
         onClose={onClose}
         severity="error"
-        sx={{ width: '100%' }}
-        action={
-          <Button color="inherit" size="small" onClick={onClose}>
-            OK
-          </Button>
-        }
+        sx={{ 
+          width: '90%',
+          whiteSpace: 'pre-line' // Preserve line breaks in the message
+        }}
       >
         {message}
       </Alert>
@@ -98,6 +95,30 @@ export const InfoMsgBox = ({ open, onClose, message }) => {
       <Alert
         onClose={onClose}
         severity="info"
+        sx={{ width: '100%' }}
+        action={
+          <Button color="inherit" size="small" onClick={onClose}>
+            OK
+          </Button>
+        }
+      >
+        {message}
+      </Alert>
+    </Snackbar>
+  );
+};
+
+export const StatusMsgBox = ({ open, onClose, message, severity }) => {
+  return (
+    <Snackbar
+      open={open}
+      autoHideDuration={6000}
+      onClose={onClose}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    >
+      <Alert
+        onClose={onClose}
+        severity={severity}
         sx={{ width: '100%' }}
         action={
           <Button color="inherit" size="small" onClick={onClose}>

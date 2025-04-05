@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
-import { TextField, Button, Typography, Container, Box } from "@mui/material";
+import { TextField, Button, Typography, Container, Box ,CircularProgress } from "@mui/material";
 import Image from "next/image";
 import { getManufacturerStatus, loginWithMetaMask } from "../testingblockchain/login-status-manufacture/check"; // Import blockchain functions
-import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from "../components/MsgBox"; // Import message box 
+import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox,StatusMsgBox  } from "../components/MsgBox"; // Import message box 
+import {fetchRejectionComments} from '../../../lib/adminmanufacturerfetch';
+import Link from 'next/link';
+import NavBar from "../components/NavBar";
 
 const ManufacturerLogin = () => {
     const [inputValue, setInputValue] = useState("");
@@ -14,6 +17,12 @@ const ManufacturerLogin = () => {
     const [errorOpen, setErrorOpen] = useState(false);
     const [infoOpen, setInfoOpen] = useState(false);
     const [metaMaskErrorMessage, setMetaMaskErrorMessage] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [metaMaskLoading, setMetaMaskLoading] = useState(false);
+
+    const [statusOpen, setStatusOpen] = useState(false);
+    const [statusMessage, setStatusMessage] = useState("");
+    const [statusSeverity, setStatusSeverity] = useState("info");
     const [successAlert, setSuccessAlert] = useState({
         open: false,
         message: "",
@@ -39,60 +48,88 @@ const ManufacturerLogin = () => {
             setErrorOpen(true);
             return;
         }
-        setErrorMessage(""); // Clear error if input is valid
-
-        setStatus("Processing...");
-        setStatusColor("#FFC107");
-
+        if (errorMessage) return;
+        
+        setLoading(true);
+    
         try {
-            const status = await getManufacturerStatus(inputValue);
-            if (status) {
-                setStatus(status);
-                setStatusColor(status === "Approved ✅" ? "#4CAF50" : status === "Rejected ❌" ? "#F44336" : "#FFC107");
-                setSuccessOpen(true);
+            const result = await getManufacturerStatus(inputValue);
+            
+            if (result === null) {
+                setErrorMessage("The Manufacturer does not exist");
+                setErrorOpen(true);
+                return;
+            }
+    
+            // Set status message and severity based on result
+            if (result.includes("Approved")) {
+                setStatusMessage("Your manufacturer account is approved!");
+                setStatusSeverity("success");
+                setStatusOpen(true);
+            } else if (result.includes("Rejected")) {
+                // Fetch rejection comments when account is rejected
+                const comments = await fetchRejectionComments(inputValue);
+                setErrorMessage(`Your manufacturer account has been rejected. Reason: ${comments}`);
+                setErrorOpen(true);
             } else {
-                setErrorMessage("Failed to fetch status. Please try again.");
+                setStatusMessage("Your manufacturer account is pending");
+                setStatusSeverity("warning");
+                setStatusOpen(true);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            setErrorMessage("An error occurred while checking status.");
+            setErrorOpen(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+    const handleMetaMaskLogin = async () => {
+        setMetaMaskLoading(true);
+    
+        try {
+            const result = await loginWithMetaMask();
+            
+            if (result === "Login Successful ✅") {
+                setSuccessAlert({
+                    open: true,
+                    message: "Login successful! Redirecting to dashboard...",
+                    routeButton: {
+                        path: "/manufacturerdashboard",
+                        label: "Go to Dashboard"
+                    }
+                });
+            } else if (result === "Login Failed ❌ (Manufacturer Not Approved)") {
+                // For MetaMask login, we need to get the wallet address first
+                const provider = new BrowserProvider(window.ethereum);
+                const signer = await provider.getSigner();
+                const walletAddress = await signer.getAddress();
+                
+                const comments = await fetchRejectionComments(walletAddress);
+                setErrorMessage(`Your manufacturer account is not approved. Reason: ${comments}`);
+                setErrorOpen(true);
+            } else {
+                setErrorMessage(result);
                 setErrorOpen(true);
             }
         } catch (error) {
-            console.error("Error fetching status:", error);
-            setErrorMessage("An error occurred while fetching the status.");
+            console.error("MetaMask login error:", error);
+            setErrorMessage("Failed to connect with MetaMask");
             setErrorOpen(true);
+        } finally {
+            setMetaMaskLoading(false);
         }
-    };
-
-    const handleMetaMaskLogin = async () => {
-        const result = await loginWithMetaMask();
-        if (result === "Login Successful ✅") {
-            setStatus(result);
-            setStatusColor("#4CAF50");
-            
-            // Update to use setSuccessAlert
-            setSuccessAlert({
-                open: true,
-                message: "Login successful! Redirecting to dashboard...",
-                routeButton: {
-                    path: "/manufacturerdashboard",
-                    label: "Go to Dashboard"
-                }
-            });
-        } else {
-            setMetaMaskErrorMessage(result);
-            setErrorOpen(true);
-        }
-    };
-    
-    const handleCloseSuccess = () => {
-        setSuccessOpen(false);
     };
 
     const handleCloseError = () => {
         setErrorOpen(false);
+        setErrorMessage("");
     };
 
-    const handleCloseInfo = () => {
-        setInfoOpen(false);
+    const handleCloseStatus = () => {
+        setStatusOpen(false);
     };
+
 
     return (
         <>
@@ -119,6 +156,12 @@ const ManufacturerLogin = () => {
 
             {/* Message Boxes (Above Navbar) */}
             <Box sx={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 2000 }}>
+            <StatusMsgBox
+                    open={statusOpen}
+                    onClose={handleCloseStatus}
+                    message={statusMessage}
+                    severity={statusSeverity}
+                />
             <SuccessMsgBox
             open={successAlert.open}
             onClose={() => setSuccessAlert({ ...successAlert, open: false })}
@@ -128,42 +171,13 @@ const ManufacturerLogin = () => {
                 <ErrorMsgBox
                     open={errorOpen}
                     onClose={handleCloseError}
-                    message={errorMessage || metaMaskErrorMessage}
+                    message={errorMessage}
                 />
-                <InfoMsgBox
-                    open={infoOpen}
-                    onClose={handleCloseInfo}
-                    message="This is an informational message."
-                />
+                
             </Box>
 
-            {/* Navbar */}
-            <Box
-                sx={{
-                    width: "100%",
-                    bgcolor: "#004b8d",
-                    padding: "10px 20px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    position: "fixed",
-                    top: 0,
-                    zIndex: 1500,
-                    height: "60px",
-                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                }}
-            >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
-                    <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>Home</Typography>
-                    <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>Contact Us</Typography>
-                    <Typography variant="body1" sx={{ cursor: "pointer", color: "#ffffff" }}>About Us</Typography>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Image src="/healthcare (1).png" alt="Logo" width={50} height={50} />
-                    <Typography variant="h6" sx={{ ml: 1, color: "#ffffff" }}>MediCare</Typography>
-                </Box>
-            </Box>
-
+            <NavBar/>
+            
             {/* Main Content */}
             <Container maxWidth="md" sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", mt: "80px" }}>
                 <Box sx={{
@@ -176,8 +190,8 @@ const ManufacturerLogin = () => {
                     maxWidth: "450px",
                     width: "100%",
                     p: 4,
-                    bgcolor: "rgba(255, 255, 255, 0.15)",
-                    backdropFilter: "blur(15px)",
+                    bgcolor: "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(50px)",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
@@ -193,17 +207,18 @@ const ManufacturerLogin = () => {
                         value={inputValue}
                         onChange={handleInputChange}
                         error={!!errorMessage}
-                        helperText={errorMessage}
                         sx={{ mb: 2, bgcolor: "rgba(255, 255, 255, 0.9)", borderRadius: "8px" }}
                     />
 
-                    <Button variant="contained" onClick={handleSubmit} sx={{ mt: 1, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}>
-                        Submit
+                    <Button variant="contained" onClick={handleSubmit} disabled={loading} sx={{ mt: 1, width: "80%", borderRadius: "15px", fontSize: "0.85rem", padding: "6px" }}>
+                    {loading ? <CircularProgress size={24} color="inherit" /> : "Submit"}
                     </Button>
 
                     <Button
     variant="contained"
     onClick={handleMetaMaskLogin}
+    disabled={metaMaskLoading}
+
     sx={{ 
         mt: 2, 
         width: "80%", 
@@ -216,14 +231,42 @@ const ManufacturerLogin = () => {
     }}
 >
     
-    Login With MetaMask
-    <Image 
-        src="/metamask.png" // Ensure this image is placed in the public/ directory
-        alt="MetaMask Logo" 
-        width={24} 
-        height={24} 
-    />
-</Button>
+{metaMaskLoading ? (
+                            <CircularProgress size={24} color="inherit" />
+                        ) : (
+                            <>
+                                Login With MetaMask
+                                <Image 
+                                    src="/metamask.png"
+                                    alt="MetaMask Logo" 
+                                    width={24} 
+                                    height={24} 
+                                />
+                            </>
+                        )}
+                    </Button>
+<Typography variant="caption" sx={{ 
+    mt: 2, 
+    color: "#ffffff", 
+    fontSize: "0.87rem",
+    textAlign: "center",
+    maxWidth: "100%"
+}}>
+    Note: Your MetaMask wallet address will be auto-detected
+</Typography>
+<Typography variant="caption" sx={{ mt: 1, color: "#ffffff",    fontSize: "0.87rem",
+ }}>
+    <Link 
+        href="/manufacturer" 
+        style={{ 
+            color: 'darkBlue', 
+            textDecoration: 'underline',
+            cursor: 'pointer'
+        }}
+    >
+        Register as Manufacturer
+    </Link>
+</Typography>
 
                 </Box>
             </Container>

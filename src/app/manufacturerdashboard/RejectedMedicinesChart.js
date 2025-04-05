@@ -1,30 +1,33 @@
-import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
+"use client";
+import React, { useState, useEffect } from "react";
+
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemText from "@mui/material/ListItemText";
-import Image from "next/image";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Modal from "@mui/material/Modal";
-import AddIcon from "@mui/icons-material/Add";
-const RejectedMedicinesChart = () => {
-  const data = [
-    { name: "Capsules", value: 5, color: "#3357FF" },
-    { name: "Tablets", value: 10, color: "#FFA500" },
-    { name: "Antibiotics", value: 20, color: "#a812e3" },
-    { name: "Drugs", value: 15, color: "#E91E63" },
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+
+const RejectedMedicinesChart = ({ rejectedMedicines = [] }) => {
+  // Prepare data for the pie chart
+  const pieData = [
+    { 
+      name: 'Rejected', 
+      value: rejectedMedicines.length,
+      color: '#FF5252'
+    },
+    { 
+      name: 'Empty', 
+      value: Math.max(1, 10 - rejectedMedicines.length),
+      color: '#E0E0E0'
+    }
   ];
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) {
+    return null; // or a loading state
+  }
 
   return (
     <Box
@@ -45,31 +48,49 @@ const RejectedMedicinesChart = () => {
         },
       }}
     >
-      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>Rejected Medicines</Typography>
+      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>
+        Rejected Medicines
+      </Typography>
+      <Typography variant="h4" sx={{ textAlign: "center", color: "#FF5252", my: 2 }}>
+        {rejectedMedicines.length}
+      </Typography>
+      
       <PieChart width={200} height={200}>
         <Pie
-          data={data}
+          data={pieData}
           cx={100}
           cy={100}
-          innerRadius={40}
-          outerRadius={60}
-          fill="#8884d8"
+          innerRadius={60}
+          outerRadius={80}
+          paddingAngle={5}
           dataKey="value"
-          label
         >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={3} />
+          {pieData.map((entry, index) => (
+            <Cell 
+              key={`cell-${index}`} 
+              fill={entry.color} 
+              stroke="white" 
+              strokeWidth={3} 
+            />
           ))}
         </Pie>
-        <Tooltip formatter={(value, name) => [`${value} rejected`, name]} />
+        <Tooltip 
+          formatter={(value, name) => [`${value}`, name]} 
+        />
       </PieChart>
+      
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
-        {data.map((category) => (
-          <Box key={category.name} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box sx={{ width: 15, height: 15, backgroundColor: category.color, borderRadius: 2 }}></Box>
-            <Typography variant="body2" sx={{ color: "#000000" }}>{category.name}</Typography>
-          </Box>
-        ))}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ 
+            width: 15, 
+            height: 15, 
+            backgroundColor: "#FF5252", 
+            borderRadius: 2 
+          }} />
+          <Typography variant="body2" sx={{ color: "#000000" }}>
+            Rejected
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

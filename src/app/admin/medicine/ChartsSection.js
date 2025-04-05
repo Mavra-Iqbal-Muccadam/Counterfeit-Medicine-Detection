@@ -104,7 +104,7 @@ const ChartsSection = ({ pendingMedicines, acceptedMedicines, rejectedMedicines,
           </Box>
         </Box>
 
-        {/* Line Chart */}
+        {/* Line Chart
         <Box
           sx={{
             flex: 1,
@@ -118,7 +118,7 @@ const ChartsSection = ({ pendingMedicines, acceptedMedicines, rejectedMedicines,
             Medicines Status Over Time
           </Typography>
           <LineChart />
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   );

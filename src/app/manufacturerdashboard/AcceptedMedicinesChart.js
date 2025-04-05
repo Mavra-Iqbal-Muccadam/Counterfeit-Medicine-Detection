@@ -1,3 +1,6 @@
+"use client";
+import React, { useState, useEffect } from "react";
+
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -18,13 +21,25 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Modal from "@mui/material/Modal";
 import AddIcon from "@mui/icons-material/Add";
-const AcceptedMedicinesChart = () => {
-  const data = [
-    { name: "Drugs", value: 50, color: "#E91E63", unfilledColor: "#E0E0E0" },
-    { name: "Capsules", value: 17, color: "#3357FF", unfilledColor: "#E0E0E0" },
-    { name: "Tablets", value: 30, color: "#FFA500", unfilledColor: "#E0E0E0" },
-    { name: "Antibiotics", value: 66, color: "#a812e3", unfilledColor: "#E0E0E0" },
+
+const AcceptedMedicinesChart = ({ acceptedMedicines = [] }) => {
+  const pieData = [
+    { 
+      name: 'Accepted Medicines', 
+      value: acceptedMedicines.length,
+      color: '#4CAF50',
+      unfilledColor: '#E0E0E0'
+    }
   ];
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) {
+    return null; // or a loading state
+  }
 
   return (
     <Box
@@ -45,37 +60,35 @@ const AcceptedMedicinesChart = () => {
         },
       }}
     >
-      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>Accepted Medicines</Typography>
+      <Typography variant="h6" sx={{ textAlign: "center", color: "#000000" }}>
+        Accepted Medicines
+      </Typography>
+      <Typography variant="h4" sx={{ textAlign: "center", color: "#4CAF50", my: 2 }}>
+        {acceptedMedicines.length}
+      </Typography>
       <PieChart width={200} height={200}>
-        {data.map((category, index) => (
-          <Pie
-            key={category.name}
-            data={[
-              { name: category.name, value: category.value },
-              { name: "Remaining", value: 100 - category.value },
-            ]}
-            cx={100}
-            cy={100}
-            innerRadius={30 + index * 15}
-            outerRadius={45 + index * 15}
-            startAngle={90}
-            endAngle={-270}
-            paddingAngle={3}
-            dataKey="value"
-          >
-            <Cell fill={category.color} stroke="white" strokeWidth={3} />
-            <Cell fill={category.unfilledColor} stroke="white" strokeWidth={3} />
-          </Pie>
-        ))}
-        <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+        <Pie
+          data={[
+            { name: 'Accepted', value: acceptedMedicines.length },
+            { name: 'Empty', value: Math.max(1, 10 - acceptedMedicines.length) }
+          ]}
+          cx={100}
+          cy={100}
+          innerRadius={60}
+          outerRadius={80}
+          paddingAngle={5}
+          dataKey="value"
+        >
+          <Cell fill="#4CAF50" />
+          <Cell fill="#E0E0E0" />
+        </Pie>
+        <Tooltip />
       </PieChart>
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mt: 2 }}>
-        {data.map((category) => (
-          <Box key={category.name} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box sx={{ width: 15, height: 15, backgroundColor: category.color, borderRadius: 2 }}></Box>
-            <Typography variant="body2" sx={{ color: "#000000" }}>{category.name}</Typography>
-          </Box>
-        ))}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ width: 15, height: 15, backgroundColor: "#4CAF50", borderRadius: 2 }}></Box>
+          <Typography variant="body2" sx={{ color: "#000000" }}>Accepted</Typography>
+        </Box>
       </Box>
     </Box>
   );

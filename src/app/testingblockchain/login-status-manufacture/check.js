@@ -53,6 +53,6 @@ export async function loginWithMetaMask() {
     return isApproved ? "Login Successful ✅" : "Login Failed ❌ (Manufacturer Not Approved)";
   } catch (error) {
     console.error("❌ Error during login:", error);
-    return "Login failed";
+    return "Login failed :❌ Manufacturer Not Approved";
   }
 }
