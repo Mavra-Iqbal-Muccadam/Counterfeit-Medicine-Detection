@@ -108,6 +108,7 @@ const SaleMedicineCards = ({ sales, onEditClick, onRemoveFromSale }) => {
                     <Typography variant="h6" sx={{ fontSize: "1rem", color: "#000000" }}>
                       {sale.name}
                     </Typography>
+
                     <Typography variant="body2" sx={{ color: "#000000" }}>
                       Sold on: {sale.saleDate || new Date().toLocaleDateString()}
                     </Typography>

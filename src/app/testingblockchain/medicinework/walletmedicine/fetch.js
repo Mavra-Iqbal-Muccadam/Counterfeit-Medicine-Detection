@@ -10,8 +10,6 @@ const MedicineNFTABI = MedicineNFT.abi;
  * @param {string} walletAddress - The wallet address of the manufacturer.
  * @returns {Object} - An object containing categorized medicines.
  */
-
-
 export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
   if (!window.ethereum) {
     alert("❌ MetaMask not detected. Please install MetaMask.");
@@ -25,11 +23,11 @@ export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
     const provider = new ethers.BrowserProvider(window.ethereum);
     const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFTABI, provider);
 
-    // Call the updated smart contract function to get all medicine token IDs and their statuses
+    // Get all medicine token IDs and their statuses
     const [tokenIds, statuses] = await contract.getAllMedicinesByManufacturer(walletAddress);
 
-    console.log(`✅ Medicine Token IDs retrieved:`, tokenIds);
-    console.log(`✅ Corresponding statuses:`, statuses);
+    console.log("✅ Medicine Token IDs retrieved:", tokenIds);
+    console.log("✅ Corresponding statuses:", statuses);
 
     let pending = [];
     let accepted = [];
@@ -37,50 +35,56 @@ export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
 
     for (let i = 0; i < tokenIds.length; i++) {
       const tokenId = tokenIds[i].toString();
-      const statusEnumValue = Number(statuses[i]); // Convert BigInt to Number
+      const statusEnumValue = Number(statuses[i]);
 
-      // Fetch metadata from IPFS
-      const tokenURI = await contract.tokenURI(tokenId);
-      const ipfsUrl = `https://ipfs.io/ipfs/${tokenURI}`;
+      try {
+        // Fetch metadata from IPFS
+        const tokenURI = await contract.tokenURI(tokenId);
+        const ipfsUrl = `https://ipfs.io/ipfs/${tokenURI}`;
 
-      console.log(`🌍 Fetching metadata from IPFS: ${ipfsUrl}`);
-      const response = await fetch(ipfsUrl);
-      const metadata = await response.json();
+        console.log(`🌍 Fetching metadata from IPFS: ${ipfsUrl}`);
+        const response = await fetch(ipfsUrl);
+        const metadata = await response.json();
 
-      console.log(`📜 Extracted Metadata from IPFS:`, metadata);
+        console.log("📜 Extracted Metadata from IPFS:", metadata);
 
-      // Extract additional information from metadata
-      const medicine = {
-        tokenId,
-        name: metadata.name || "Unknown Medicine",
-        medicineId: metadata.medicineId || "N/A",
-        batchNumber: metadata.batchNumber || "N/A",
-        description: metadata.description || "No description available",
-        manufacturer: metadata.manufacturer || "Unknown Manufacturer",
-        expiryDate: metadata.expiryDate || "No Expiry Date",
-        ingredients: metadata.ingredients || [],
-        status: statusEnumValue, // Store status as number
-        uploadedFiles: metadata.uploadedFiles || [],
-      };
+        // Map all necessary metadata fields
+        const medicine = {
+          tokenId,
+          name: metadata.name || "Unknown Medicine",
+          medicineId: metadata.medicineId || "N/A",
+          batchNumber: metadata.batchNumber || "N/A",
+          manufactureDate: metadata.manufactureDate || "N/A",
+          expiryDate: metadata.expiryDate || "N/A",
+          ingredients: metadata.excipients || [],
+          types: metadata.types || [],
+          description: metadata.description || "No description available",
+          uploadedFiles: metadata.uploadedFiles || [],
+          status: statusEnumValue,
+        };
 
-      // Categorize medicines by status
-      if (statusEnumValue === 0) pending.push(medicine);
-      else if (statusEnumValue === 1) rejected.push(medicine);
-      else if (statusEnumValue === 2) accepted.push(medicine);
+        // Categorize medicines
+        if (statusEnumValue === 0) pending.push(medicine);
+        else if (statusEnumValue === 1) rejected.push(medicine);
+        else if (statusEnumValue === 2) accepted.push(medicine);
+      } catch (err) {
+        console.warn(`⚠️ Skipping token ID ${tokenId} due to fetch/parse error:`, err);
+        continue;
+      }
     }
 
-    console.log(`📌 Categorized Medicines:`, { pending, accepted, rejected });
+    console.log("📌 Categorized Medicines:", { pending, accepted, rejected });
 
     return { pending, accepted, rejected };
   } catch (error) {
-    console.error(`❌ Error fetching medicines:`, error);
-    alert(`Failed to fetch medicines.`);
+    console.error("❌ Error fetching medicines:", error);
     return { pending: [], accepted: [], rejected: [] };
   }
 };
 
-
-
+/**
+ * Custom hook to detect wallet and return wallet address.
+ */
 export const useWallet = () => {
   const [walletAddress, setWalletAddress] = useState("");
   const [walletLoading, setWalletLoading] = useState(true);
