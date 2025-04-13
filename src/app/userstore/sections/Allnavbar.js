@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   Box,
   IconButton,
@@ -24,11 +24,14 @@ import { useRouter } from "next/navigation";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import NextLink from "next/link";
+import { useCart } from "../../../app/context/CartContext.js"; // Import the useCart hook
 
 const Allnavbar = () => {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [openCategories, setOpenCategories] = useState(false);
+  const { cartCount, cart, totalPrice } = useCart(); // Get the cart count from context
+  const [isCartOpen, setIsCartOpen] = useState(false); // State for cart side menu
 
   const categories = [
     { name: "Injections" },
@@ -51,6 +54,60 @@ const Allnavbar = () => {
 
   const toggleCategories = () => {
     setOpenCategories(!openCategories);
+  };
+
+  const handleCartClick = () => {
+    setIsCartOpen(true); // Open cart side menu
+  };
+
+  const handleCloseCart = () => {
+    setIsCartOpen(false); // Close cart side menu
+  };
+
+  // Basic CartSideMenu component
+  const CartSideMenu = () => {
+    return (
+      <Drawer
+        anchor="right"
+        open={isCartOpen}
+        onClose={handleCloseCart}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 300,
+            padding: 2,
+          },
+        }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">Your Cart</Typography>
+          <IconButton onClick={handleCloseCart}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <List>
+          {cart && cart.length > 0 ? (
+            cart.map((item) => (
+              <ListItem key={item.id}>
+                <ListItemText
+                  primary={item.name}
+                  secondary={`Quantity: ${item.quantity} - Price: PKR ${item.price * item.quantity}`}
+                />
+              </ListItem>
+            ))
+          ) : (
+            <ListItem>
+              <ListItemText primary="No items in cart" />
+            </ListItem>
+          )}
+        </List>
+        <Box mt={2}>
+          <Typography variant="subtitle1">Total: PKR {totalPrice}</Typography>
+          <Button variant="contained" color="primary" fullWidth onClick={() => {router.push('/userstore/userstorepages/allmedicines')}}>
+            Add More Medicines
+          </Button>
+        </Box>
+      </Drawer>
+    );
   };
 
   return (
@@ -117,16 +174,15 @@ const Allnavbar = () => {
             <Typography>Sign In / Sign Up</Typography>
           </Link>
           
-          <Link 
-            href="/cart" 
-            component={NextLink}
-            color="inherit"
-            sx={{ display: 'flex', alignItems: 'center' }}
-          >
-            <Badge badgeContent={0} color="error">
+          <IconButton color="inherit" onClick={handleCartClick}>
+            {cartCount > 0 ? (
+              <Badge badgeContent={cartCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
+            ) : (
               <ShoppingCartIcon />
-            </Badge>
-          </Link>
+            )}
+          </IconButton>
         </Box>
       </Box>
 
@@ -209,6 +265,8 @@ const Allnavbar = () => {
           Sale
         </Link>
       </Box>
+
+      <CartSideMenu /> {/* Include the CartSideMenu component */}
     </>
   );
 };

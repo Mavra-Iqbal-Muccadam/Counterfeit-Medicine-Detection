@@ -8,6 +8,7 @@ import Allnavbar from '../../../sections/Allnavbar';
 import { FooterSection } from '../../../sections/FooterSection';
 import { fetchAllMedicines } from '../../../../../../lib/saleMedicineDb';
 import { useSearchParams } from 'next/navigation';
+import { useCart } from '../../../../../app/context/CartContext.js'; // Import the useCart hook
 
 export default function CartPage() {
   const [medicine, setMedicine] = useState(null);
@@ -16,6 +17,7 @@ export default function CartPage() {
   const [fixedQuantity, setFixedQuantity] = useState(1);
   const [fixedPrice, setFixedPrice] = useState(0);
   const searchParams = useSearchParams();
+  const { updateCartCount } = useCart(); // Get the updateCartCount function from context
 
   useEffect(() => {
     const medicineId = searchParams.get('medicineId');
@@ -35,6 +37,8 @@ export default function CartPage() {
         
         setFixedQuantity(initialQuantity);
         setFixedPrice(price > 0 ? price : foundMedicine.price);
+         // Update cart count (assuming 1 item is added)
+        updateCartCount(initialQuantity);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -171,14 +175,18 @@ export default function CartPage() {
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#002F6C' }}>
                       Total: Rs. {(fixedPrice * fixedQuantity).toFixed(2)}
                     </Typography>
-                    <Button 
-                      variant="contained" 
+                    <Button
+                      variant="contained"
                       size="medium"
-                      sx={{ 
+                      sx={{
                         backgroundColor: '#002F6C',
                         '&:hover': { backgroundColor: '#014E50' },
                         px: 3,
                         py: 1
+                      }}
+                      onClick={() => {
+                        const checkoutUrl = `/userstore/userstorepages/allmedicines/checkout?medicineId=${medicine.medicine_id}&quantity=${fixedQuantity}&price=${fixedPrice}`;
+                        window.location.href = checkoutUrl;
                       }}
                     >
                       Proceed to Checkout
