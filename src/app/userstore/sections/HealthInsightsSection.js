@@ -59,7 +59,7 @@ export const HealthInsightsSection = () => {
         alignItems="center" 
         sx={{ mb: 5 }}
       >
-        <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
           Health & Medicine Insights
         </Typography>
         <Link 

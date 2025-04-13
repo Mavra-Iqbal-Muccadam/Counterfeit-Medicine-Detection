@@ -14,7 +14,7 @@ export const FooterSection = () => {
       sx={{
         backgroundColor: "#002F6C",
         color: "white",
-        padding: { xs: "2rem 1rem", md: "3rem 2rem" },
+        padding: { xs: "2rem 1rem", md: "2rem 2rem" },
         marginTop: "4rem",
       }}
     >
@@ -72,7 +72,7 @@ export const FooterSection = () => {
             <Link href="/userstore/userstorepages/adpolicy" color="inherit" underline="hover" sx={{ textAlign: { xs: "center", md: "left" } }}>
               Advertising Policy
             </Link>
-            <Link href="/products" color="inherit" underline="hover" sx={{ textAlign: { xs: "center", md: "left" } }}>
+            <Link href="/userstore/userstorepages/allmedicines" color="inherit" underline="hover" sx={{ textAlign: { xs: "center", md: "left" } }}>
               Products
             </Link>
           </Box>
@@ -231,10 +231,10 @@ export const FooterSection = () => {
       }}>
         <Typography variant="body2">
           &copy; {new Date().getFullYear()} PharmaGuard 24/7. All rights reserved. | 
-          <Link href="/privacy" color="inherit" underline="hover" sx={{ ml: 1 }}>
+          <Link href="/userstore/userstorepages/privacypolicy" color="inherit" underline="hover" sx={{ ml: 1 }}>
             Privacy Policy
           </Link> | 
-          <Link href="/terms" color="inherit" underline="hover" sx={{ ml: 1 }}>
+          <Link href="/userstore/userstorepages/terms" color="inherit" underline="hover" sx={{ ml: 1 }}>
             Terms of Service
           </Link>
         </Typography>

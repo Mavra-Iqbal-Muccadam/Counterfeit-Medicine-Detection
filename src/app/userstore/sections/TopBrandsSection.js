@@ -28,7 +28,7 @@ export const TopBrandsSection = () => {
   return (
     <Box id="brands" sx={{ mt: 10, px: 3, overflow: "hidden" }}>
       <Typography
-        variant="h4"
+        variant="h5"
         sx={{ fontWeight: "bold", mb: 5, textAlign: "left" }}
       >
         Top Brands

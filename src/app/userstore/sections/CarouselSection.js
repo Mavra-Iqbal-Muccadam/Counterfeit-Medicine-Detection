@@ -181,7 +181,7 @@ export const CarouselSection = () => {
         }}>
           <CardActionArea 
             sx={{ height: "100%" }}
-            onClick={() => router.push("/userstore/userstorepages/qrcode")}
+            onClick={() => router.push("/qrgenerator")}
           >
             <Box sx={{ position: "relative", height: "100%" }}>
               {/* Background Image */}

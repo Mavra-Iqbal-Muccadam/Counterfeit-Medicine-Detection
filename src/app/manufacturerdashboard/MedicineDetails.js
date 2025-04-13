@@ -53,7 +53,7 @@ const MedicineDetails = ({
 
     return (
         <Box sx={{ 
-            mt: 3,
+            mt: 3, // This is your existing top margin (3 = 24px)
             width: '100%',
             height: '100%',
             display: 'flex',

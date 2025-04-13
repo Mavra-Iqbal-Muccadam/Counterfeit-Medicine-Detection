@@ -29,6 +29,7 @@ import SaleMedicineCards from './SaleMedicineCards';
 import { fetchMedicinesByStatus } from '../testingblockchain/medicinework/accepted-rejected/fetch';
 import MedicineDetails from './MedicineDetails';
 import { getApprovedManufacturers } from "../testingblockchain/accepted-rejected-manufacturer/fetch";
+import { useRouter } from "next/navigation";
 
 import { 
   addMedicineToSale , 
@@ -42,6 +43,7 @@ import { ethers } from "ethers";
 import NavBar from "../components/NavBar";
 
 const ManufacturerDashboard = () => {
+  const [activeView, setActiveView] = useState("statistics"); // 'statistics' or 'medicines'
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
   const [openModal, setOpenModal] = useState(false);
@@ -58,6 +60,7 @@ const ManufacturerDashboard = () => {
   const [pendingMedicines, setPendingMedicines] = useState([]);
   const [acceptedMedicines, setAcceptedMedicines] = useState([]);
   const [rejectedMedicines, setRejectedMedicines] = useState([]);
+  const router = useRouter();
   // With this:
 const [walletStatus, setWalletStatus] = useState({
   connected: false,
@@ -76,6 +79,28 @@ const [walletStatus, setWalletStatus] = useState({
     rejected: false,
     wallet: true
   });
+
+  const handleViewChange = (event, newValue) => {
+    setActiveView(newValue);
+  };
+  const handleLogout = () => {
+    // Clear any session data if needed
+    setWalletStatus({
+      connected: false,
+      approved: false,
+      loading: false,
+      address: ""
+    });
+    setManufacturerDetails({
+      name: "",
+      licenseNo: "",
+      certificate: ""
+    });
+    
+    // Redirect to manufacturer login
+    router.push('/manufacturerlogin');
+  };
+
 
   // Detect wallet address on component mount
   useEffect(() => {
@@ -493,207 +518,176 @@ const fetchPendingMedicines = async () => {
       display: "flex", 
       flexDirection: "column", 
       minHeight: "100vh", 
-      fontFamily: "sans-serif", 
-      backgroundColor: "#ADD8E6",
+      backgroundColor: "#f5f7fa",
       position: 'relative',
-      overflow: 'hidden'
     }}>
       {/* Main Content - will be blurred when wallet is not approved */}
       <Box sx={{
-  filter: !walletStatus.loading && !walletStatus.approved ? 'blur(5px)' : 'none',
-  pointerEvents: !walletStatus.loading && !walletStatus.approved ? 'none' : 'auto',
-  width: '100%',
-  height: '100%',
-  transition: 'filter 0.3s ease'
-}}>
-        <NavBar/>
-        {/* Manufacturer Details Section */}
+        filter: !walletStatus.loading && !walletStatus.approved ? 'blur(5px)' : 'none',
+        pointerEvents: !walletStatus.loading && !walletStatus.approved ? 'none' : 'auto',
+        width: '100%',
+        height: '100%',
+        transition: 'filter 0.3s ease'
+      }}>
+        <NavBar 
+  walletStatus={walletStatus} 
+  manufacturerDetails={manufacturerDetails}
+  onLogout={() => {
+    // Clear any session data if needed
+    router.push('/manufacturerlogin');
+  }}
+/>
+        {/* Secondary Navigation */}
         <Box sx={{ 
-            mt: "80px", 
-            p: 3, 
-            backgroundColor: "#FFFFFF", 
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-            mb: 3
-          }}>
-          <Typography variant="h5" sx={{ mb: 2, fontWeight: "bold" }}>Manufacturer Details</Typography>
-          
-          {loading.wallet ? (
-  <Box sx={{ display: "flex", justifyContent: "center" }}>
-    <CircularProgress />
-  </Box>
-) : !walletStatus.address ? null : (            
-<Box sx={{ 
-              display: "grid", 
-              gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" }, 
-              gap: 3 
-            }}>
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Manufacturer Name:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.name}
-                </Typography>
-              </Box>
-              
-              <Box>
-  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Wallet Address:</Typography>
-  <Typography variant="body1" sx={{ 
-    fontFamily: "monospace",
-    wordBreak: "break-word"
-  }}>
-    {walletStatus.address}
-  </Typography>
-</Box>
-              
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>License Number:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.licenseNo}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Certification Number:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.certificationNumber}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Date of Issue:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.dateOfIssue}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Email:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.email}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Phone Number:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.phoneNumber}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Physical Address:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.physicalAddress}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Website:</Typography>
-                <Typography variant="body1">
-                  {manufacturerDetails.website}
-                </Typography>
-              </Box>
-
-              <Box sx={{ gridColumn: "1 / -1" }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>Certificate:</Typography>
-                {manufacturerDetails.certificate ? (
-                  <Button 
-                    variant="outlined" 
-                    sx={{ mt: 1 }}
-                    onClick={() => window.open(manufacturerDetails.certificate, '_blank')}
-                  >
-                    View Certificate
-                  </Button>
-                ) : (
-                  <Typography variant="body1">No certificate available</Typography>
-                )}
-              </Box>
-            </Box>
-          )}
+          backgroundColor: 'white',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          borderBottom: '1px solid #e0e0e0',
+          position: 'sticky',
+          top: '115px', // Height of NavBar
+          zIndex: 1100
+        }}>
+          <Tabs
+            value={activeView}
+            onChange={handleViewChange}
+            centered
+            sx={{
+              '& .MuiTabs-indicator': {
+                height: 3,
+                backgroundColor: '#1976d2'
+              }
+            }}
+          >
+            <Tab 
+              label="Statistics" 
+              value="statistics" 
+              sx={{
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                minWidth: 'unset',
+                padding: '12px 24px',
+                color: activeView === 'statistics' ? '#1976d2' : '#555'
+              }}
+            />
+            <Tab 
+              label="Medicines by Status" 
+              value="medicines" 
+              sx={{
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                minWidth: 'unset',
+                padding: '12px 24px',
+                color: activeView === 'medicines' ? '#1976d2' : '#555'
+              }}
+            />
+          </Tabs>
         </Box>
 
+        
         {/* Main Content */}
-        <Box sx={{ flex: 1, paddingTop: "80px", paddingBottom: "20px", display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
-          {/* Graph Boxes */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-around', gap: 2, padding: "0 20px", marginBottom: "20px" }}>
-            <AcceptedMedicinesChart data={acceptedMedicines} />
-            <PendingMedicinesChart data={pendingMedicines} />
-            <RejectedMedicinesChart data={rejectedMedicines} />
-          </Box>
-
-          {/* Tabs for Medicines */}
-          <Box sx={{ mt: 2, padding: "0 20px" }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Tabs
-                value={activeTab}
-                onChange={handleTabChange}
-                centered
-              >
-                <Tab
-                  label="Pending Medicines"
-                  value="pending"
-                  sx={{
-                    fontSize: "1rem",
-                    padding: "12px 24px",
-                    color: "#000000",
-                    fontWeight: activeTab === "pending" ? "bold" : "normal",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      borderRadius: "8px",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                    },
-                  }}
-                />
-                <Tab
-                  label="Accepted Medicines"
-                  value="accepted"
-                  sx={{
-                    fontSize: "1rem",
-                    padding: "12px 24px",
-                    color: activeTab === "accepted" ? "#4CAF50" : "#000000",
-                    fontWeight: activeTab === "accepted" ? "bold" : "normal",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      borderRadius: "8px",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                    },
-                  }}
-                />
-                <Tab
-                  label="Rejected Medicines"
-                  value="rejected"
-                  sx={{
-                    fontSize: "1rem",
-                    padding: "12px 24px",
-                    color: activeTab === "rejected" ? "#F44336" : "#000000",
-                    fontWeight: activeTab === "rejected" ? "bold" : "normal",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      borderRadius: "8px",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                    },
-                  }}
-                />
-                <Tab
-                  label="Sales"
-                  value="sales"
-                  sx={{
-                    fontSize: "1rem",
-                    padding: "12px 24px",
-                    color: activeTab === "sales" ? "#2196F3" : "#000000",
-                    fontWeight: activeTab === "sales" ? "bold" : "normal",
-                    "&:hover": {
-                      backgroundColor: "rgba(255, 255, 255, 0.8)",
-                      borderRadius: "8px",
-                      boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
-                    },
-                  }}
-                />
-              </Tabs>
-
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenModal}>
-                Add Medicine
-              </Button>
+        <Box sx={{ 
+          flex: 1, 
+          padding: '30px',
+          maxWidth: '1600px',
+          margin: '100px auto 0px auto',
+          width: '100%',
+          
+        }}>
+          {activeView === 'statistics' ? (
+            <Box sx={{ 
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
+              gap: '24px',
+              mb: '10px'
+            }}>
+              <AcceptedMedicinesChart data={acceptedMedicines} />
+              <PendingMedicinesChart data={pendingMedicines} />
+              <RejectedMedicinesChart data={rejectedMedicines} />
             </Box>
+          ) : (
+            <Box sx={{ mt: 2 }}>
+              <Box sx={{ 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center",
+                mb: 3
+              }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  sx={{
+                    '& .MuiTabs-indicator': {
+                      height: 3,
+                      backgroundColor: '#1976d2'
+                    }
+                  }}
+                >
+                  <Tab
+                    label="Pending Medicines"
+                    value="pending"
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      minWidth: 'unset',
+                      padding: '12px 24px',
+                      color: activeTab === 'pending' ? '#1976d2' : '#555'
+                    }}
+                  />
+                  <Tab
+                    label="Accepted Medicines"
+                    value="accepted"
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      minWidth: 'unset',
+                      padding: '12px 24px',
+                      color: activeTab === 'accepted' ? '#1976d2' : '#555'
+                    }}
+                  />
+                  <Tab
+                    label="Rejected Medicines"
+                    value="rejected"
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      minWidth: 'unset',
+                      padding: '12px 24px',
+                      color: activeTab === 'rejected' ? '#1976d2' : '#555'
+                    }}
+                  />
+                  <Tab
+                    label="Sales"
+                    value="sales"
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      minWidth: 'unset',
+                      padding: '12px 24px',
+                      color: activeTab === 'sales' ? '#1976d2' : '#555'
+                    }}
+                  />
+                </Tabs>
+
+                <Button 
+                  variant="contained" 
+                  startIcon={<AddIcon />} 
+                  onClick={handleOpenModal}
+                  sx={{
+                    backgroundColor: '#1976d2',
+                    '&:hover': {
+                      backgroundColor: '#1565c0'
+                    }
+                  }}
+                >
+                  Add Medicine
+                </Button>
+              </Box>
+
 
             {/* Medicine Cards */}
             {loading.wallet ? (
@@ -735,6 +729,7 @@ const fetchPendingMedicines = async () => {
               />
             )}
           </Box>
+        )}
         </Box>
 
         {/* Message Boxes */}
@@ -772,12 +767,12 @@ const fetchPendingMedicines = async () => {
         <Modal open={openModal} onClose={handleCloseModal}>
           <Box sx={{ 
             position: "absolute", 
-            top: "55%", 
+            top: "50%", 
             left: "50%", 
             transform: "translate(-50%, -50%)", 
             width: "90%", 
             maxWidth: "900px",
-            maxHeight: "90vh",
+            maxHeight: "60vh",
             p: 0,
             borderRadius: 2,
             zIndex: 2000 
@@ -1057,13 +1052,14 @@ const fetchPendingMedicines = async () => {
     <Button 
       variant="contained" 
       color="primary"
-      onClick={() => window.location.reload()}
+      onClick={() => router.push('/manufacturerlogin')}
       sx={{ mt: 2 }}
     >
-      Refresh Page
+      Go to Login
     </Button>
   </Box>
 )}
+
     </Box>
   );
 };

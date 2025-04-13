@@ -1,42 +1,65 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { verifyMedicineByQRAndFetchDetails } from "./authenticate"; // custom combined logic
+import jsQR from "jsqr";
 
-export default function QRCodePage() {
-  const [qrPageLink, setQrPageLink] = useState("");
-  const [receivedText, setReceivedText] = useState("");
-  const [socket, setSocket] = useState(null);
+export default function QRImageUploadPage() {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [scanResult, setScanResult] = useState("");
+  const [medicineDetails, setMedicineDetails] = useState(null);
+  const [statusMsg, setStatusMsg] = useState("");
 
-  // Generate the link for the mobile device
-  useEffect(() => {
-    setQrPageLink(`${window.location.origin}/qrcode/scan`);
-  }, []);
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
- // In QRCodePage component
-useEffect(() => {
-  const ws = new WebSocket("wss://b8bf-45-199-187-1.ngrok-free.app"); // Use the ngrok URL
-  ws.onmessage = (event) => {
-    setReceivedText(event.data); // Update received message
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+
+    img.onload = async () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+      if (code?.data) {
+        setScanResult(code.data);
+
+        const result = await verifyMedicineByQRAndFetchDetails(code.data);
+        if (result.status === "success") {
+          setStatusMsg("✅ Medicine is authentic and approved.");
+          setMedicineDetails(result.medicine);
+        } else {
+          setStatusMsg("❌ Medicine not verified.");
+        }
+      } else {
+        setStatusMsg("❌ QR code not detected.");
+      }
+    };
+
+    setSelectedImage(img.src);
   };
-  setSocket(ws);
-
-  return () => ws.close(); // Cleanup socket on unmount
-}, []);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>QR Code Scanner & Decoder</h1>
+    <div className="p-6 flex flex-col items-center justify-center">
+      <h1 className="text-2xl font-bold mb-4">Upload QR Code Image</h1>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      {selectedImage && <img src={selectedImage} alt="QR" className="w-64 my-4 border" />}
 
-      {/* Display the link for the mobile device */}
-      {qrPageLink && (
-        <p>
-          Open this link on your mobile: <a href={qrPageLink} target="_blank">{qrPageLink}</a>
-        </p>
-      )}
+      {statusMsg && <p className="font-semibold mt-2">{statusMsg}</p>}
 
-      {/* Display received QR code data */}
-      {receivedText && (
-        <div style={{ marginTop: "20px", fontSize: "18px", fontWeight: "bold", color: "green" }}>
-          <p>📩 Received: {receivedText}</p>
+      {medicineDetails && (
+        <div className="mt-4 p-4 border rounded bg-gray-100">
+          <h2 className="text-lg font-bold mb-2">Medicine Info</h2>
+          <p><strong>Name:</strong> {medicineDetails.name}</p>
+          <p><strong>Token ID:</strong> {medicineDetails.tokenId}</p>
+          <p><strong>IPFS:</strong> {medicineDetails.ipfsHash}</p>
+          <p><strong>Status:</strong> {medicineDetails.status}</p>
         </div>
       )}
     </div>

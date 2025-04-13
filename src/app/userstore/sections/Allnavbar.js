@@ -1,56 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   IconButton,
   Typography,
-  Button,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Collapse,
   Badge,
   Link,
 } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
-import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
+import { usePathname } from "next/navigation";
 import NextLink from "next/link";
 
 const Allnavbar = () => {
-  const router = useRouter();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [openCategories, setOpenCategories] = useState(false);
+  const pathname = usePathname();
+  const isUserStorePage = pathname === "/userstore";
 
   const categories = [
-    { name: "Injections" },
+    { name: "Injection" },
     { name: "Antibiotic" },
-    { name: "Syrups" },
-    { name: "Tablets" },
+    { name: "Syrup" },
+    { name: "Capsule" },
   ];
 
-  const handleCategoryClick = (category) => {
-    router.push(`/category/${category.name}`);
-    setDrawerOpen(false);
-  };
-
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
+  const getLink = (section) => {
+    if (pathname === "/userstore") {
+      return `#${section}`;
     }
-    setDrawerOpen(open);
-  };
-
-  const toggleCategories = () => {
-    setOpenCategories(!openCategories);
+    return `/userstore/userstorepages/${section}`;
   };
 
   return (
@@ -90,12 +69,21 @@ const Allnavbar = () => {
           color: "white",
         }}
       >
-        {/* Left side - Menu and Logo */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Link href="/" component={NextLink} sx={{ display: 'flex', marginTop: 9 }}>
-            <Image src="/logob.png" alt="Logo" width={180} height={100} />
-          </Link>
-        </Box>
+        {/* Left side - Logo */}
+<Box sx={{ display: "flex", alignItems: "center" }}>
+  <Link href="/userstore" passHref>
+    <Box sx={{ mt: 9 }}> {/* Adjust mt value as needed (e.g., 1–5) */}
+      <Image 
+        src="/logob.png" 
+        alt="Logo" 
+        width={180} 
+        height={200} 
+        style={{ objectFit: 'contain' }}
+      />
+    </Box>
+  </Link>
+</Box>
+
 
         {/* Right side - Sign In and Cart */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -149,7 +137,7 @@ const Allnavbar = () => {
           <Link
             key={index}
             component={NextLink}
-            href={`/category/${category.name}`}
+            href={`/userstore/userstorepages/${category.name}`}
             color="#002F6C"
             sx={{
               fontWeight: "bold",
@@ -163,9 +151,10 @@ const Allnavbar = () => {
             {category.name}
           </Link>
         ))}
+
         <Link
           component={NextLink}
-          href="#insights"
+          href={"/userstore/userstorepages/insights"}
           color="#002F6C"
           sx={{
             fontWeight: "bold",
@@ -178,36 +167,57 @@ const Allnavbar = () => {
         >
           Medicine Insights
         </Link>
-        <Link
-          component={NextLink}
-          href="#famous"
-          color="#002F6C"
-          sx={{
-            fontWeight: "bold",
-            fontSize: "16px",
-            textDecoration: 'none',
-            '&:hover': {
-              textDecoration: 'underline'
-            }
-          }}
-        >
-          Famous medicine
-        </Link>
-        <Link
-          component={NextLink}
-          href="#sale"
-          color="#002F6C"
-          sx={{
-            fontWeight: "bold",
-            fontSize: "16px",
-            textDecoration: 'none',
-            '&:hover': {
-              textDecoration: 'underline'
-            }
-          }}
-        >
-          Sale
-        </Link>
+
+        {isUserStorePage ? (
+          <>
+            <Link
+              component={NextLink}
+              href={getLink("famous")}
+              color="#002F6C"
+              sx={{
+                fontWeight: "bold",
+                fontSize: "16px",
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              Famous medicine
+            </Link>
+            <Link
+              component={NextLink}
+              href={getLink("sale")}
+              color="#002F6C"
+              sx={{
+                fontWeight: "bold",
+                fontSize: "16px",
+                textDecoration: 'none',
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              Sale
+            </Link>
+          </>
+        ) : (
+          <Link
+            component={NextLink}
+            href={"/userstore/userstorepages/famous"}
+            color="#002F6C"
+            sx={{
+              fontWeight: "bold",
+              fontSize: "16px",
+              textDecoration: 'none',
+              '&:hover': {
+                textDecoration: 'underline'
+              }
+            }}
+          >
+            Famous medicine
+          </Link>
+        )}
       </Box>
     </>
   );
