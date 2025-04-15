@@ -805,91 +805,92 @@ const fetchPendingMedicines = async () => {
         </Modal>
 
         <Modal open={saleModalOpen} onClose={handleCloseSaleModal}>
-          <Box sx={{ 
-            position: "absolute", 
-            top: "55%", 
-            left: "50%", 
-            transform: "translate(-50%, -50%)", 
-            width: 400,
-            bgcolor: "background.paper", 
-            boxShadow: 24, 
-            p: 3,
-            borderRadius: 2,
-            backgroundColor: "#ffffff",
-            zIndex: 1000
-          }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-              <Typography variant="h6">Confirm Sale</Typography>
-              <IconButton onClick={handleCloseSaleModal} size="small">
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
-            
-            {selectedMedicine && (
-              <>
-                {selectedMedicine.uploadedFiles?.length > 0 && (
-                  <CardMedia 
-                    component="img" 
-                    height="150"
-                    image={`https://ipfs.io/ipfs/${selectedMedicine.uploadedFiles[0].ipfsHash}`} 
-                    alt={selectedMedicine.name} 
-                    sx={{ 
-                      objectFit: "contain", 
-                      width: "100%", 
-                      mb: 2,
-                      maxHeight: 200
-                    }} 
-                  />
-                )}
-                
-                <Typography variant="body1" sx={{ mb: 1 }}>
-                  <strong>Medicine:</strong> {selectedMedicine.name}
-                </Typography>
-                
-                <TextField
-                  label="Price ($)"
-                  type="number"
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  sx={{ mb: 1 }}
-                />
+  <Box sx={{ 
+    position: "absolute", 
+    top: "59.5%", 
+    left: "50%", 
+    transform: "translate(-50%, -50%)", 
+    width: 400,
+    bgcolor: "background.paper", 
+    boxShadow: 24, 
+    p: 3,
+    borderRadius: 2,
+    backgroundColor: "#ffffff",
+    zIndex: 1000,
+    maxHeight: "90vh", // Reduced from 80% to 60vh
+    overflow: "auto", // Add scroll if content exceeds height
+  }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+      <Typography variant="h6">Confirm Sale</Typography>
+      <IconButton onClick={handleCloseSaleModal} size="small">
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </Box>
+    
+    {selectedMedicine && (
+      <>
+        {selectedMedicine.uploadedFiles?.length > 0 && (
+          <CardMedia 
+            component="img" 
+            height="140" // Reduced from 150
+            image={`https://ipfs.io/ipfs/${selectedMedicine.uploadedFiles[0].ipfsHash}`} 
+            alt={selectedMedicine.name} 
+            sx={{ 
+              objectFit: "contain", 
+              width: "100%", 
+              mb: 1, // Reduced from mb: 2
+              maxHeight: 150 // Reduced from 200
+            }} 
+          />
+        )}
+        
+        <Typography variant="body1" sx={{ mb: 1 }}>
+          <strong>Medicine:</strong> {selectedMedicine.name}
+        </Typography>
+        
+        <TextField
+          label="Price ($)"
+          type="number"
+          fullWidth
+          margin="normal"
+          size="small"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          sx={{ mb: 1 }}
+        />
 
-                <TextField
-                  label="Quantity"
-                  type="number"
-                  fullWidth
-                  margin="normal"
-                  size="small"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  sx={{ mb: 1 }}
-                  inputProps={{ min: 1 }}
-                />
-                
-                <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                  <Button 
-                    variant="contained" 
-                    fullWidth 
-                    onClick={confirmSale}
-                    sx={{ 
-                      py: 1,
-                      backgroundColor: "#4CAF50",
-                      '&:hover': {
-                        backgroundColor: "#388E3C"
-                      }
-                    }}
-                  >
-                    Confirm
-                  </Button>
-                </Box>
-              </>
-            )}
-          </Box>
-        </Modal>
-
+        <TextField
+          label="Quantity"
+          type="number"
+          fullWidth
+          margin="normal"
+          size="small"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          sx={{ mb: 1 }}
+          inputProps={{ min: 1 }}
+        />
+        
+        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <Button 
+            variant="contained" 
+            fullWidth 
+            onClick={confirmSale}
+            sx={{ 
+              py: 1,
+              backgroundColor: "#4CAF50",
+              '&:hover': {
+                backgroundColor: "#388E3C"
+              }
+            }}
+          >
+            Confirm
+          </Button>
+        </Box>
+      </>
+    )}
+  </Box>
+</Modal>
         <Modal open={editModalOpen} onClose={handleCloseEditModal}>
           <Box sx={{
             position: "absolute",

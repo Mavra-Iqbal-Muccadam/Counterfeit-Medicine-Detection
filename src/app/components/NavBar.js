@@ -18,7 +18,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 const NavBar = ({ loginButton, walletStatus, manufacturerDetails, onLogout }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const isLandingPage = pathname === "/landingpage";
+  const isLandingPage = pathname === "/";
   const isManufacturerReg = pathname === "/manufacturer";
   const isManufacturerLogin = pathname === "/manufacturerlogin";
   const isLoginPage = ["/manufacturerlogin", "/userlogin", "/adminlogin"].includes(pathname);

@@ -1,15 +1,16 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { 
-  Box, Typography, Container, Card, CardContent, CardMedia, 
-  CircularProgress, Button, IconButton, Grid, Modal, Divider, Chip 
+import { useParams, useRouter } from 'next/navigation';
+import {
+  Box, Typography, Container, Card, CardContent, CardMedia,
+  CircularProgress, Button, IconButton, Grid, Divider, Chip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import Allnavbar from '../../../sections/Allnavbar';
 import { FooterSection } from '../../../sections/FooterSection';
 import { fetchAllMedicines } from '../../../../../../lib/saleMedicineDb';
-import { useRouter } from 'next/navigation'; // Add this import at the top
+import { useCart } from '../../../../context/CartContext';
 
 const style = {
   position: 'absolute',
@@ -23,27 +24,39 @@ const style = {
   borderRadius: 2
 };
 
-export default function MedicineDetails({ params }) {
-    const router = useRouter(); // Add this line
-
+export default function MedicineDetails() {
+  const router = useRouter();
+  const params = useParams();
+  const medicineId = params.medicineId;
   const [medicine, setMedicine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [open, setOpen] = useState(false);
 
+  const { addToCart } = useCart();
+
   const handleAddToCart = () => {
-    router.push(`/userstore/userstorepages/allmedicines/cart?medicineId=${params.medicineId}&quantity=${quantity}&price=${medicine.price}`);
+    addToCart({
+      medicine_id: medicine.medicine_id,
+      name: medicine.name,
+      price: medicine.price,
+      image_url: medicine.image_url,
+      quantity,
+      types: medicine.types || []
+    });
+    router.push(`/userstore/userstorepages/allmedicines/cart`);
   };
-    const handleClose = () => setOpen(false);
+
+  const handleClose = () => setOpen(false);
 
   useEffect(() => {
     const loadMedicine = async () => {
       try {
         const medicines = await fetchAllMedicines();
-        const foundMedicine = medicines.find(m => m.medicine_id === params.medicineId);
-        if (!foundMedicine) throw new Error('Medicine not found');
-        setMedicine(foundMedicine);
+        const found = medicines.find(m => m.medicine_id === medicineId);
+        if (!found) throw new Error('Medicine not found');
+        setMedicine(found);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -52,7 +65,7 @@ export default function MedicineDetails({ params }) {
     };
 
     loadMedicine();
-  }, [params.medicineId]);
+  }, [medicineId]);
 
   const handleIncrement = () => {
     if (quantity < medicine.quantity) {
@@ -99,7 +112,6 @@ export default function MedicineDetails({ params }) {
         <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3 } }}>
           <Card sx={{ boxShadow: 2 }}>
             <Grid container>
-              {/* Image on the left */}
               <Grid item xs={12} md={4}>
                 {medicine.image_url && (
                   <CardMedia
@@ -117,14 +129,12 @@ export default function MedicineDetails({ params }) {
                 )}
               </Grid>
 
-              {/* Details on the right */}
               <Grid item xs={12} md={8}>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, color: '#002F6C', fontSize: { xs: '1.5rem', sm: '1.75rem' } }}>
                     {medicine.name}
                   </Typography>
-                  
-                  {/* Medicine Type Chip */}
+
                   {medicine.types && medicine.types.length > 0 && (
                     <Box sx={{ mb: 2 }}>
                       {medicine.types.map((type, index) => (
@@ -143,7 +153,7 @@ export default function MedicineDetails({ params }) {
                       ))}
                     </Box>
                   )}
-                  
+
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}>Product Details</Typography>
                     <Typography variant="body2" sx={{ mb: 1 }}>
@@ -168,7 +178,6 @@ export default function MedicineDetails({ params }) {
 
                   <Divider sx={{ my: 2 }} />
 
-                  {/* More prominent stock display */}
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -183,14 +192,10 @@ export default function MedicineDetails({ params }) {
                       color: medicine.quantity > 0 ? '#002F6C' : '#d32f2f',
                       ml: 1
                     }}>
-                      {medicine.quantity > 0 ? 
-                        `
-🔵  ${medicine.quantity} units available in stock` : 
-                        '🔴 Currently out of stock'}
+                      {medicine.quantity > 0 ? `🔵  ${medicine.quantity} units available in stock` : '🔴 Currently out of stock'}
                     </Typography>
                   </Box>
 
-                  {/* Quantity Selector */}
                   {medicine.quantity > 0 && (
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Typography variant="subtitle1" sx={{ mr: 2, fontWeight: 'bold', fontSize: '0.95rem' }}>
@@ -218,7 +223,6 @@ export default function MedicineDetails({ params }) {
                     </Box>
                   )}
 
-                  {/* Price and Add to Cart */}
                   <Box sx={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
@@ -231,21 +235,20 @@ export default function MedicineDetails({ params }) {
                     <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#002F6C' }}>
                       Rs. {(medicine.price * quantity).toFixed(2)}
                     </Typography>
-{/* Modified Add to Cart button */}
-<Button 
-        variant="contained" 
-        size="medium"
-        onClick={handleAddToCart}
-        disabled={medicine.quantity <= 0}
-        sx={{ 
-          backgroundColor: '#002F6C',
-          '&:hover': { backgroundColor: '#014E50' },
-          px: 3,
-          py: 1
-        }}
-      >
-        Add to Cart
-      </Button>
+                    <Button 
+                      variant="contained" 
+                      size="medium"
+                      onClick={handleAddToCart}
+                      disabled={medicine.quantity <= 0}
+                      sx={{ 
+                        backgroundColor: '#002F6C',
+                        '&:hover': { backgroundColor: '#014E50' },
+                        px: 3,
+                        py: 1
+                      }}
+                    >
+                      Add to Cart
+                    </Button>
                   </Box>
                 </CardContent>
               </Grid>
@@ -253,8 +256,6 @@ export default function MedicineDetails({ params }) {
           </Card>
         </Container>
       </Box>
-
-      
       <FooterSection />
     </>
   );

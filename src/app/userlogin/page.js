@@ -89,11 +89,7 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!validateEmail(formData.email)) {
-      setErrors({ ...errors, email: "Please enter a valid email address" });
-      return;
-    }
-
+    
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -103,24 +99,50 @@ const Login = () => {
           password: formData.password,
         }),
       });
-
+  
+      console.log("Response status:", response.status); // Add this line
+      
       const data = await response.json();
+      console.log("Response data:", data); // Add this line
+      
       if (response.ok) {
-        setSuccessMsg("Login successful! Redirecting...");
-        setOpenSuccessMsg(true);
+        // Save user data and token
         localStorage.setItem("token", data.token);
-        setTimeout(() => {
-          window.location.href = "/userstore";
-        }, 2000);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        window.location.href = "/userstore/userstorepages/dashboard";
       } else {
-        setErrorMsg("Invalid email or password");
+        setErrorMsg(data.message || "Login failed");
         setOpenErrorMsg(true);
       }
     } catch (error) {
-      setErrorMsg("Login failed. Please try again.");
+      console.error("Login error:", error); // Add detailed logging
+      setErrorMsg("Login failed. Please check your connection and try again.");
       setOpenErrorMsg(true);
     }
   };
+  // Add this to your Login component or a separate Auth service
+// Add this to your Login component
+const handleLogout = async () => {
+  try {
+    // Clear local storage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // Optional: Call logout API if you have one
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    
+    // Redirect to login page
+    window.location.href = '/userlogin';
+  } catch (error) {
+    console.error('Logout failed:', error);
+    window.location.href = '/userlogin';
+  }
+};
 
   return (
     <>

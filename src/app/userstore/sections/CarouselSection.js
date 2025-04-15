@@ -11,7 +11,7 @@ import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 const categories = [
   {
     name: "Injections",
-    image: "/haath.png",
+    image: "/hath.png",
   },
   {
     name: "Antibiotics",
@@ -181,7 +181,7 @@ export const CarouselSection = () => {
         }}>
           <CardActionArea 
             sx={{ height: "100%" }}
-            onClick={() => router.push("/qrgenerator")}
+            onClick={() => router.push("/qrcode")}
           >
             <Box sx={{ position: "relative", height: "100%" }}>
               {/* Background Image */}
