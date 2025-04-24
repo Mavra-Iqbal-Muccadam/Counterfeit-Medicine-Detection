@@ -109,8 +109,10 @@ const Login = () => {
         // Save user data and token
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        window.location.href = "/userstore/userstorepages/dashboard";
-      } else {
+        const redirectUrl = localStorage.getItem('redirectAfterLogin') || '/userstore/userstorepages/dashboard';
+        localStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectUrl;
+              } else {
         setErrorMsg(data.message || "Login failed");
         setOpenErrorMsg(true);
       }
