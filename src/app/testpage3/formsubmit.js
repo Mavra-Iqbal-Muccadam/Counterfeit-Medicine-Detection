@@ -1,6 +1,7 @@
 import { storeMedicineOnIPFS } from "../../../pages/api/ipfs/medicine"; // Import IPFS function
 import { ethers } from "ethers"; // ✅ Import ethers v6
-import MedicineNFT from "../../../artifacts/blockchain/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import your contract ABI
+import MedicineNFT from "../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
+
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
 // ✅ Replace with deployed MedicineNFT contract address

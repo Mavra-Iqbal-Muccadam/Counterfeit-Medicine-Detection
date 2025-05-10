@@ -41,16 +41,24 @@ export default async function handler(req, res) {
         console.error("❌ Token not found in headers");
         return res.status(500).json({ error: 'Failed to extract token from PayPro response headers' });
       }
-  
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+      const yyyy = today.getFullYear();
+      
+      const issueDate = `${dd}/${mm}/${yyyy}`; // today
+      const dueDate = `${dd}/${mm}/${yyyy}`;   // or you can set +1 day if you want
+      
+      
       // Step 2: Create Order using provided orderNumber
       const orderPayload = [
         { MerchantId: merchantId },
         {
           OrderNumber: orderNumber, // ✅ from frontend
           OrderAmount: amount,
-          OrderDueDate: '20/04/2025',
+          OrderDueDate: dueDate,
           OrderType: 'Product',
-          IssueDate: '16/04/2025',
+          IssueDate: issueDate,
           OrderExpireAfterSeconds: '0',
           CustomerName: name,
           CustomerMobile: phone,
@@ -82,8 +90,10 @@ export default async function handler(req, res) {
       }
   
       console.log("🌐 Redirecting user to:", paymentLink);
-      return res.status(200).json({ paymentUrl: paymentLink });
-  
+      return res.status(200).json({ 
+        paymentUrl: paymentLink,
+        payProRawResponse: orderData   // send full PayPro order data back too
+      });  
     } catch (error) {
       console.error("🔥 Unexpected error:", error);
       return res.status(500).json({ error: error.message || 'Something went wrong' });

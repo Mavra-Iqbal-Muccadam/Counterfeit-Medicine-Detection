@@ -148,7 +148,7 @@ export default function MedicineForm() {
   return (
     <div className="flex justify-center items-center min-h-screen" style={{ backgroundColor: 'lightblue' }}>
       <form className="bg-light blue-300 p-6 rounded-lg shadow-lg w-96" onSubmit={(e) => handleSubmit(e, medicine, setMedicine)  }>
-<img src="/t.png" alt="Medicine" style={{ maxWidth: '100%', marginBottom: '10px', height: 'auto', backgroundColor: 'transparent' }} />
+
         {/* ✅ Auto-trigger API on file upload */}
         <label className="block mb-2 text-lg font-semibold">Upload Certificate</label>
         <input

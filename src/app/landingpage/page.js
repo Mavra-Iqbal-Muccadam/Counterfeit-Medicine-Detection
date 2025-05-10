@@ -24,13 +24,33 @@ const LandingPage = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const scrollRef = useRef(null);
   const [selectedManufacturer, setSelectedManufacturer] = useState(null);
+ 
+
+
+
+  // Scroll manually using buttons
   const scroll = (direction) => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -300 : 300,
-      behavior: "smooth",
-    });
+    if (scrollRef.current) {
+      const scrollAmount = 300; // pixels per click
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
   };
+
+  // Auto-scroll the carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollBy({
+          left: 1,
+          behavior: "smooth",
+        });
+      }
+    }, 20); // Very smooth movement
+    return () => clearInterval(interval);
+  }, []);
 
   // Features section data
   const features = [
@@ -253,7 +273,7 @@ const LandingPage = () => {
 
   useEffect(() => {
     // Set page title
-    document.title = "HealthCare - Medical Center";
+    document.title = "PharmaGuard 24/7";
     
     // Update testimonial carousel width based on screen size
     updateItemWidth();
@@ -349,281 +369,321 @@ const LandingPage = () => {
       
       {/* Main Content */}
       <main>
-        <Box
-      id="home"
+      <Box
+  id="home"
+  sx={{
+    mt: 5,
+    pt: { xs: "64px", md: "64px" },
+    minHeight: { xs: "500px", md: "600px" },
+    background: "linear-gradient(to top, #fff, #c2bd18 )",
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+  }}
+>
+  {/* Left Content */}
+  <Container
+    sx={{
+      position: "relative",
+      zIndex: 2,
+      width: { xs: "100%", md: "60%" },
+      py: { xs: 4, md: 10 },
+      color: "#0F1A3A",
+      ml: 2,
+    }}
+  >
+    <Box
       sx={{
-        mt: 5,
-        pt: { xs: "64px", md: "64px" },
-        minHeight: { xs: "500px", md: "600px" },
-        backgroundColor: "#0F1A3A",
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        overflow: "hidden",
+        maxWidth: "650px",
+        backgroundColor: "rgba(255,255,255,0.85)",
+        padding: { xs: 2, md: 4 },
+        borderRadius: "12px",
+        backdropFilter: "blur(5px)",
       }}
     >
-      {/* Left Content */}
-      <Container
+      {/* ... Typography and Buttons remain unchanged ... */}
+      <Typography
+        variant="subtitle1"
         sx={{
-          position: "relative",
-          zIndex: 2,
-          width: { xs: "100%", md: "60%" },
-          py: { xs: 4, md: 10 },
-          color: "white",
-          marginLeft:1,
+          color: "#FF6B6B",
+          fontWeight: 700,
+          mb: 2,
+          letterSpacing: "1.5px",
+          fontSize: "1.1rem",
         }}
       >
-        <Box sx={{ maxWidth: "650px" }}>
-          <Typography
-            variant="subtitle1"
-            sx={{
-              color: "#FF6B6B",
-              fontWeight: 700,
-              mb: 2,
-              letterSpacing: "1.5px",
-              fontSize: "1.1rem",
-            }}
-          >
-            YOUR HEALTH IS OUR PRIORITY
-          </Typography>
+        YOUR HEALTH IS OUR PRIORITY
+      </Typography>
 
-          <Typography
-            variant="h2"
-            sx={{
-              fontWeight: 800,
-              mb: 3,
-              fontSize: { xs: "2.5rem", md: "3.5rem" },
-              lineHeight: 1.2,
-            }}
-          >
-            Comprehensive Medical Care For Your Family
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "rgba(255,255,255,0.9)",
-              fontSize: { xs: "1.1rem", md: "1.25rem" },
-              mb: 4,
-              lineHeight: 1.7,
-            }}
-          >
-            Our team of board-certified physicians provides personalized healthcare 
-            solutions for patients of all ages with cutting-edge medical technology.
-          </Typography>
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <Button
-              href="#services"
-              variant="contained"
-              sx={{
-                backgroundColor: "#FF6B6B",
-                "&:hover": { backgroundColor: "#E05555" },
-                px: 4,
-                py: 1.5,
-                fontWeight: 600,
-                fontSize: "1rem",
-                borderRadius: "8px",
-                minWidth: "160px",
-              }}
-            >
-              Our Services
-            </Button>
-
-            <Button
-              href="#about"
-              variant="outlined"
-              sx={{
-                borderColor: "white",
-                borderWidth: 2,
-                color: "white",
-                "&:hover": {
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  borderColor: "white",
-                },
-                px: 4,
-                py: 1.5,
-                fontWeight: 600,
-                fontSize: "1rem",
-                borderRadius: "8px",
-                minWidth: "160px",
-              }}
-            >
-              About Us
-            </Button>
-          </Stack>
-        </Box>
-      </Container>
-
-      {/* Right Video with mix-blend-mode */}
-      <Box
+      <Typography
+        variant="h2"
         sx={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          height: "100%",
-          width: { xs: "100%", md: "50%" },
-          zIndex: 1,
-          overflow: "hidden",
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
+          fontWeight: 800,
+          mb: 3,
+          fontSize: { xs: "2.2rem", md: "3.5rem" },
+          lineHeight: 1.2,
         }}
       >
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          style={{
-            objectFit: "cover",
-            width: "100%",
-            height: "100%",
-            mixBlendMode: "darken", // try "screen", "multiply", or "overlay" too
-            opacity: 0.9,
-            backgroundColor: "#0F1A3A",
+        Comprehensive Medical Care For Your Family
+      </Typography>
+
+      <Typography
+        sx={{
+          color: "#555",
+          fontSize: { xs: "1.1rem", md: "1.25rem" },
+          mb: 4,
+          lineHeight: 1.7,
+        }}
+      >
+        Our team of board-certified physicians provides personalized healthcare 
+        solutions for patients of all ages with cutting-edge medical technology.
+      </Typography>
+
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+        <Button
+          href="#services"
+          variant="contained"
+          sx={{
+            backgroundColor: "#FF6B6B",
+            "&:hover": { backgroundColor: "#e05252" },
+            px: 4,
+            py: 1.5,
+            fontWeight: 600,
+            fontSize: "1rem",
+            borderRadius: "8px",
+            minWidth: "160px",
+            boxShadow: "0px 4px 12px rgba(0,0,0,0.2)",
+            transition: "all 0.3s ease",
           }}
         >
-          <source
-            src="https://video-previews.elements.envatousercontent.com/09f79677-748f-4f1f-965b-74d3f47c934d/watermarked_preview/watermarked_preview.mp4"
-            type="video/mp4"
-          />
-        </video>
-      </Box>
+          Our Services
+        </Button>
+
+        <Button
+          href="#about"
+          variant="outlined"
+          sx={{
+            borderColor: "#0F1A3A",
+            color: "#0F1A3A",
+            "&:hover": {
+              backgroundColor: "rgba(15,26,58,0.08)",
+              borderColor: "#0F1A3A",
+            },
+            px: 4,
+            py: 1.5,
+            fontWeight: 600,
+            fontSize: "1rem",
+            borderRadius: "8px",
+            minWidth: "160px",
+            transition: "all 0.3s ease",
+          }}
+        >
+          About Us
+        </Button>
+      </Stack>
     </Box>
-        {/* Features Banner */}
-        <section className="bg-white py-10 shadow-md">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <div className={`bg-${index === 0 ? 'primary' : index === 1 ? '[#4ECDC4]' : index === 2 ? '[#FF6B6B]' : 'gray-700'}/10 p-4 rounded-full`}>
-                    {feature.icon}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-800 font-heading">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+  </Container>
+
+  {/* Right Video Section */}
+  <Box
+    sx={{
+      position: "absolute",
+      right: 0,
+      top: 0,
+      height: "100%",
+      width: { xs: "100%", md: "55%" },
+      zIndex: 1,
+      overflow: "hidden",
+      display: "flex",
+      justifyContent: "flex-end",
+      alignItems: "center",
+    }}
+  >
+    {/* Video */}
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      style={{
+        objectFit: "cover",
+        width: "100%",
+        height: "100%",
+      }}
+    >
+      <source
+        src="https://video-previews.elements.envatousercontent.com/09f79677-748f-4f1f-965b-74d3f47c934d/watermarked_preview/watermarked_preview.mp4"
+        type="video/mp4"
+      />
+    </video>
+
+    {/* Black transparent overlay on top of video */}
+    <Box
+      sx={{
+        position: "absolute",
+        inset: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.25)", // Light black overlay
+        zIndex: 2,
+      }}
+    />
+  </Box>
+
+</Box>
+
+      
+
+{/* Features Banner */}
+<section className="bg-[#1d4e89] py-10 min-h-[100px] shadow-md">
+  <div className="container mx-auto px-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {features.map((feature, index) => (
+        <div key={index} className="flex items-center space-x-4 group">
+          
+          {/* Icon Circle with Hover Animation */}
+          <div className="bg-white p-4 rounded-full transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
+            {feature.icon}
           </div>
-        </section>
-        
-        {/* Services Section */}
-        <section id="services" className="py-16 bg-gray-100">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <p className="text-primary font-medium mb-2">Our Medical Services</p>
-              <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800">
-                Comprehensive Healthcare Services
-              </h2>
-              <div className="w-24 h-1 bg-[#FF6B6B] mx-auto mt-4"></div>
+
+          {/* Text Content */}
+          <div>
+            <h3 className="text-xl font-bold text-white font-heading">
+              {feature.title}
+            </h3>
+            <p className="text-white/80">
+              {feature.description}
+            </p>
+          </div>
+          
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+
+
+{/* Services Section */}
+<section id="services" className="py-20 bg-gray-150">
+  <div className="container mx-auto px-4">
+    
+    {/* Section Header */}
+    <div className="text-center mb-12" data-aos="fade-up">
+      <p className="text-primary font-medium mb-2">Our Medical Services</p>
+      <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800">
+        Comprehensive Healthcare Services
+      </h2>
+      <div className="w-24 h-1 bg-[#FF6B6B] mx-auto mt-4"></div>
+    </div>
+
+    {/* Services Grid */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {services.map((service, index) => (
+        <div
+          key={service.id}
+          className="group bg-white rounded-lg shadow-md overflow-hidden relative transform transition-all duration-500 hover:scale-105 hover:shadow-2xl border-2 border-transparent hover:border-[#29285e]"
+          data-aos="fade-up"
+          data-aos-delay={`${index * 100}`} // Staggered animation
+        >
+          {/* Service Image */}
+          <div className="h-40 overflow-hidden"> {/* Decreased height from h-52 to h-40 */}
+            <img
+              src={service.image}
+              alt={`${service.title} Department`}
+              className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+            />
+          </div>
+
+          {/* Service Content */}
+          <div className="p-5 relative z-10 flex flex-col items-start"> {/* Decreased padding from p-6 to p-4 */}
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+              {service.icon}
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service) => (
-                <div 
-                  key={service.id} 
-                  className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 hover:shadow-lg"
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img 
-                      src={service.image} 
-                      alt={`${service.title} Department`} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                      {service.icon}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 font-heading text-gray-800">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">
-                      {service.description}
-                    </p>
-                    <a href={`#services-${service.id}`} className="text-primary font-medium flex items-center hover:text-[#FF6B6B] transition-colors">
-                      Learn More
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-4 w-4 ml-2" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="text-center mt-12">
-              <a 
-                href="#services" 
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-md inline-block font-medium transition-colors"
+            <h3 className="text-xl font-bold mb-2 font-heading text-gray-800">{service.title}</h3> {/* Reduced text-xl */}
+            <p className="text-gray-600 text-sm mb-6">{service.description}</p> {/* Smaller text-sm paragraph */}
+
+            {/* Learn More - Hidden by Default, Shown on Hover */}
+            <a
+              href={`#services-${service.id}`}
+              className="opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-500 text-primary font-semibold flex items-center hover:text-[#FF6B6B]"
+            >
+              Learn More
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                View All Services
-              </a>
-            </div>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
           </div>
-        </section>
-        
-        {/* About Section */}
-        <section id="about" className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="order-2 lg:order-1">
-                <p className="text-primary font-medium mb-2">About Us</p>
-                <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800 mb-6">
-                  Providing Quality Healthcare Since 1995
-                </h2>
-                
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  At HealthCare Medical Center, we are dedicated to providing exceptional healthcare services to our community. With a team of highly skilled doctors, state-of-the-art facilities, and a patient-centered approach, we strive to improve the health and wellbeing of every individual we serve.
-                </p>
-                
-                <div className="space-y-4 mb-8">
-                  {["Experienced team of medical professionals", 
-                    "Advanced diagnostic and treatment technologies", 
-                    "Compassionate and patient-centered care", 
-                    "Comprehensive range of medical services"].map((feature, index) => (
-                    <div key={index} className="flex items-start">
-                      <div className="text-[#FF6B6B] mr-3 mt-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      </div>
-                      <p className="text-gray-600">{feature}</p>
-                    </div>
-                  ))}
-                </div>
-                
-                <a 
-                  href="#doctors" 
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md inline-block font-medium transition-colors"
-                >
-                  Meet Our Doctors
-                </a>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+       {/* About Section */}
+<section id="about" className="relative py-20 bg-cover bg-center overflow-hidden" style={{ backgroundImage: "url('/aboutusimage.png')" }}>
+  
+
+  {/* Content */}
+  <div className="relative container mx-auto px-4 z-10">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      
+      {/* Text Content */}
+      <div 
+        className="order-2 lg:order-1"
+        data-aos="fade-right"
+        data-aos-duration="1200"
+      >
+        <p className="text-primary font-medium mb-2">About Us</p>
+        <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800 mb-6">
+          Providing Quality Healthcare Since 1995
+        </h2>
+
+        <p className="text-gray-600 mb-6 leading-relaxed">
+          At HealthCare Medical Center, we are dedicated to providing exceptional healthcare services to our community. 
+          With a team of highly skilled doctors, state-of-the-art facilities, and a patient-centered approach, we strive to 
+          improve the health and wellbeing of every individual we serve.
+        </p>
+
+        <div className="space-y-4 mb-8">
+          {[
+            "Experienced team of medical professionals", 
+            "Advanced diagnostic and treatment technologies", 
+            "Compassionate and patient-centered care", 
+            "Comprehensive range of medical services"
+          ].map((feature, index) => (
+            <div key={index} className="flex items-start">
+              <div className="text-[#FF6B6B] mr-3 mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" 
+                  width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                  className="h-5 w-5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
               </div>
-              
-              <div className="order-1 lg:order-2 relative">
-                <img 
-                  src="https://images.unsplash.com/photo-1551076805-e1869033e561?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=900&q=80" 
-                  alt="Medical Staff at HealthCare Medical Center" 
-                  className="rounded-lg shadow-xl w-full h-auto max-h-[500px] object-cover"
-                />
-                <div className="absolute -bottom-5 -left-5 bg-[#FF6B6B] text-white p-4 rounded-lg shadow-lg hidden md:block">
-                  <div className="font-heading font-bold text-3xl mb-1">25+</div>
-                  <div className="text-sm">Years of Experience</div>
-                </div>
-              </div>
+              <p className="text-gray-600">{feature}</p>
             </div>
-          </div>
-        </section>
-        
-        {/* Doctors Section */}
-        <section className="bg-white py-20">
+          ))}
+        </div>
+
+      </div>
+
+      {/* Empty Section for Symmetry */}
+      <div className="order-1 lg:order-2 hidden lg:block">
+        {/* Empty intentionally (background is handled via CSS) */}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section className="bg-white py-20">
       <div className="flex flex-col lg:flex-row items-stretch gap-0 w-full">
         {/* Left Box - Title & Arrows */}
         <div className="lg:w-[33%] w-full bg-[#0F1A3A] text-white px-10 py-14 flex flex-col justify-center rounded-l-2xl">
@@ -697,109 +757,110 @@ const LandingPage = () => {
               className="w-full h-56 object-cover rounded-lg mb-4"
             />
             <p className="text-gray-700 text-sm">
-              {/* You can add more fields like description, PDF, etc. */}
               Manufacturer details will appear here. You can show approval status, documents, or more.
             </p>
           </div>
         </div>
       )}
     </section>
+        
+
 
         {/* Testimonials Section */}
-        <section id="testimonials" className="py-16 bg-primary/5">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <p className="text-primary font-medium mb-2">Patient Testimonials</p>
-              <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800">
-                What Our Patients Say
-              </h2>
-              <div className="w-24 h-1 bg-[#FF6B6B] mx-auto mt-4"></div>
-            </div>
-            
-            <div className="relative">
-              <div 
-                ref={testimonialContainerRef}
-                className="testimonial-container overflow-x-hidden flex transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(-${currentTestimonialIndex * itemWidth}%)` }}
-              >
-                {testimonials.map((testimonial) => (
-                  <div 
-                    key={testimonial.id} 
-                    className="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-4"
-                  >
-                    <div className="bg-white p-6 rounded-lg shadow-md h-full">
-                      <div className="flex items-center mb-4">
-                        {renderStars(testimonial.rating)}
-                      </div>
-                      <p className="text-gray-600 mb-6 italic">
-                        "{testimonial.content}"
-                      </p>
-                      <div className="flex items-center">
-                        <img 
-                          src={testimonial.avatar} 
-                          alt={testimonial.name} 
-                          className="w-12 h-12 rounded-full object-cover mr-4"
-                        />
-                        <div>
-                          <h4 className="font-bold text-gray-800 font-heading">{testimonial.name}</h4>
-                          <p className="text-gray-500 text-sm">{testimonial.role}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+<section 
+  id="testimonials" 
+  className="py-20 relative bg-cover bg-center bg-no-repeat" 
+  style={{ 
+    backgroundImage: "url('/bg_testimonials.png')" // <-- Your background here
+  }}
+>
+  {/* Overlay for better readability */}
+
+  <div className="container relative mx-auto px-4">
+    {/* Header */}
+    <div className="text-center mb-16">
+      <p className="text-primary font-medium mb-2 text-lg tracking-widest uppercase">
+        Patient Testimonials
+      </p>
+      <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800">
+        What Our Patients Say
+      </h2>
+      <div className="w-24 h-1 bg-[#FF6B6B] mx-auto mt-4"></div>
+    </div>
+
+    {/* Testimonials Container */}
+    <div className="relative">
+      <div 
+        ref={testimonialContainerRef}
+        className="testimonial-container flex overflow-x-hidden transition-transform duration-700 ease-in-out"
+        style={{ transform: `translateX(-${currentTestimonialIndex * itemWidth}%)` }}
+      >
+        {testimonials.map((testimonial) => (
+          <div 
+            key={testimonial.id} 
+            className="min-w-full md:min-w-[50%] lg:min-w-[33.333%] p-6"
+          >
+            <div className="bg-white p-8 rounded-2xl shadow-xl h-full flex flex-col items-center justify-between transition-all duration-500 hover:scale-105">
+              
+              {/* Stars */}
+              <div className="flex items-center mb-4 animate-pulse">
+                {renderStars(testimonial.rating)}
               </div>
-              
-              <button 
-                className="absolute top-1/2 -left-4 -translate-y-1/2 bg-white p-3 rounded-full shadow-md text-primary hover:text-[#FF6B6B] focus:outline-none hidden md:block" 
-                aria-label="Previous testimonial"
-                onClick={prevSlide}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              
-              <button 
-                className="absolute top-1/2 -right-4 -translate-y-1/2 bg-white p-3 rounded-full shadow-md text-primary hover:text-[#FF6B6B] focus:outline-none hidden md:block" 
-                aria-label="Next testimonial"
-                onClick={nextSlide}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex justify-center mt-8 md:hidden">
-              <button 
-                className="bg-white p-3 rounded-full shadow-md text-primary hover:text-[#FF6B6B] focus:outline-none mx-2" 
-                aria-label="Previous testimonial"
-                onClick={prevSlide}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-              </button>
-              
-              <button 
-                className="bg-white p-3 rounded-full shadow-md text-primary hover:text-[#FF6B6B] focus:outline-none mx-2" 
-                aria-label="Next testimonial"
-                onClick={nextSlide}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
+
+              {/* Testimonial Content */}
+              <p className="text-gray-600 mb-6 italic text-center text-lg leading-relaxed">
+                "{testimonial.content}"
+              </p>
+
+              {/* User Info */}
+              <div className="flex items-center gap-4">
+                <img 
+                  src={testimonial.avatar} 
+                  alt={testimonial.name} 
+                  className="w-14 h-14 rounded-full object-cover shadow-md"
+                />
+                <div className="text-left">
+                  <h4 className="font-bold text-gray-800 font-heading text-lg">{testimonial.name}</h4>
+                  <p className="text-gray-500 text-sm">{testimonial.role}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
-        
-        {/* Contact Section */}
-<section id="contact" className="py-16 bg-gray-100">
+        ))}
+      </div>
+
+    
+    </div>
+
+    {/* Mobile Arrows */}
+    <div className="flex justify-center mt-8 md:hidden">
+      <button 
+        className="bg-white p-3 rounded-full shadow-lg text-primary hover:text-[#FF6B6B] focus:outline-none mx-2 transition-all"
+        onClick={prevSlide}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button 
+        className="bg-white p-3 rounded-full shadow-lg text-primary hover:text-[#FF6B6B] focus:outline-none mx-2 transition-all"
+        onClick={nextSlide}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+{/* Contact Section */}
+<section id="contact" className="py-16 bg-white">
   <div className="container mx-auto px-4">
+
     {/* Section Header */}
-    <div className="text-center mb-12">
+    <div className="text-center mb-12" data-aos="fade-down" data-aos-duration="1000">
       <p className="text-primary font-medium mb-2">Get In Touch</p>
       <h2 className="text-3xl md:text-4xl font-bold font-heading text-gray-800">
         Contact Us
@@ -808,22 +869,26 @@ const LandingPage = () => {
     </div>
     
     {/* Contact Cards */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 transition-all duration-500 group-hover:scale-110">
       {contactDetails.map((item, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+        <div 
+          key={index}
+          className="bg-[#1d4e89] rounded-lg shadow-lg p-8 flex flex-col items-center text-center transition-all duration-700 transform hover:-translate-y-4 hover:scale-105 group"
+          data-aos="zoom-in"
+          data-aos-delay={`${index * 150}`}
+        >
+          {/* Icon Circle with Hover Effect */}
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
             {item.icon}
           </div>
-          <h3 className="text-xl font-bold font-heading text-gray-800 mb-2">{item.title}</h3>
-          <p className="text-gray-600 whitespace-pre-line">
-            {item.details}
-          </p>
+          <h3 className="text-xl font-bold font-heading text-white mb-2">{item.title}</h3>
+          <p className="text-white/80 whitespace-pre-line">{item.details}</p>
         </div>
       ))}
     </div>
     
     {/* Map Container */}
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-gray-100 rounded-lg shadow-md overflow-hidden relative group" data-aos="fade-up" data-aos-duration="1000">
       <div className="h-[400px] w-full relative">
         {/* Google Maps Iframe */}
         <iframe 
@@ -835,10 +900,10 @@ const LandingPage = () => {
           loading="lazy" 
           referrerPolicy="no-referrer-when-downgrade"
           title="Google Maps"
-          className="absolute inset-0"
+          className="absolute inset-0 transform transition-transform duration-1000 group-hover:scale-105"
         ></iframe>
-        
-        {/* Fallback content in case map doesn't load */}
+
+        {/* Fallback Content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 hidden">
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
@@ -864,8 +929,10 @@ const LandingPage = () => {
         </div>
       </div>
     </div>
+    
   </div>
 </section>
+
 
 <FooterSection/>
 
