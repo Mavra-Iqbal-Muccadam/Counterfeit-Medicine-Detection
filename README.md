@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PharmaGuard 24/7 - Blockchain Anti-Counterfeit Medicine Platform  
 
-## Getting Started
+![PharmaGuard Logo](https://via.placeholder.com/150x50?text=PharmaGuard)  
 
-First, run the development server:
+A decentralized solution to combat counterfeit medicines using blockchain, AI, and secure verification systems.  
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Key Features  
+- **Blockchain Authentication**: Tamper-proof medicine records on Ethereum  
+- **Manufacturer Verification**: MetaMask-based onboarding with admin approval  
+- **AI-Powered Detection**: Flags suspicious medicine entries using generative AI  
+- **QR Code Verification**: Real-time authenticity checks for end-users  
+- **Role-Based Access**: Secure permissions for Admins, Manufacturers, and Users  
+- **E-Commerce Integration**: Secure payments via PayPro gateway  
+
+## 🛠️ Tech Stack  
+| Category        | Technologies Used |  
+|-----------------|------------------|  
+| **Frontend**    | Next.js, React, Tailwind CSS |  
+| **Backend**     | Node.js, Express, JWT Authentication |  
+| **Database**    | PostgreSQL, Supabase |  
+| **Blockchain**  | Ethereum (Solidity), Hardhat, Ethers.js, IPFS |  
+| **AI/ML**       | Microsoft Phi-4, Qwen 2.5, OpenAI 3.5 |  
+| **Payment**     | PayPro Integration |  
+
+## 📌 Project Highlights  
+✔ **Decentralized Trust**: Immutable medicine records on blockchain  
+✔ **AI Vigilance**: Automated anomaly detection for counterfeit prevention  
+✔ **User-Friendly**: QR scanning for instant verification  
+✔ **Secure Access**: Role-based permissions (Admin/Manufacturer/User)  
+✔ **End-to-End Solution**: From verification to purchase  
+
+## 📂 Repository Structure  
+```
+pharmaguard/  
+├── client/          # Next.js frontend  
+├── server/          # Node.js/Express backend  
+├── contracts/       # Solidity smart contracts  
+├── ipfs/            # Decentralized storage scripts  
+├── ai-module/       # Anomaly detection models  
+└── README.md  
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Setup & Installation  
+1. **Clone the repository**  
+   ```bash
+   git clone https://github.com/yourusername/pharmaguard.git
+   cd pharmaguard
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Install dependencies**  
+   ```bash
+   # Frontend
+   cd client && npm install
+   # Backend 
+   cd ../server && npm install
+   # Blockchain
+   cd ../contracts && npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Configure environment variables**  
+   Create `.env` files in each directory with:  
+   - Database credentials (PostgreSQL/Supabase)  
+   - Ethereum testnet keys (Alchemy/Sepolia)  
+   - JWT secret keys  
 
-## Learn More
+4. **Run the system**  
+   ```bash
+   # Start frontend
+   cd client && npm run dev
+   # Start backend
+   cd ../server && npm start
+   # Deploy contracts
+   cd ../contracts && npx hardhat deploy
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+## 🌐 Live Demo  
+[![Demo Video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://youtube.com/watch?v=VIDEO_ID)  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
