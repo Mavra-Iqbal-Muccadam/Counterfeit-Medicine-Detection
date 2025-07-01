@@ -16,7 +16,7 @@ A decentralized solution to combat counterfeit medicines using blockchain, AI, a
 | Category        | Technologies Used |  
 |-----------------|------------------|  
 | **Frontend**    | Next.js, React, Tailwind CSS |  
-| **Backend**     | Node.js, Express, JWT Authentication |  
+| **Backend**     | NextJs server side, JWT Authentication |  
 | **Database**    | PostgreSQL, Supabase |  
 | **Blockchain**  | Ethereum (Solidity), Hardhat, Ethers.js, IPFS |  
 | **AI/ML**       | Microsoft Phi-4, Qwen 2.5, OpenAI 3.5 |  
@@ -32,50 +32,12 @@ A decentralized solution to combat counterfeit medicines using blockchain, AI, a
 ## 📂 Repository Structure  
 ```
 pharmaguard/  
-├── client/          # Next.js frontend  
-├── server/          # Node.js/Express backend  
+├── public/          # Next.js media  
+├── src/          # NextJs Structure
 ├── contracts/       # Solidity smart contracts  
 ├── ipfs/            # Decentralized storage scripts  
 ├── ai-module/       # Anomaly detection models  
 └── README.md  
 ```
-
-## 🔧 Setup & Installation  
-1. **Clone the repository**  
-   ```bash
-   git clone https://github.com/yourusername/pharmaguard.git
-   cd pharmaguard
-   ```
-
-2. **Install dependencies**  
-   ```bash
-   # Frontend
-   cd client && npm install
-   # Backend 
-   cd ../server && npm install
-   # Blockchain
-   cd ../contracts && npm install
-   ```
-
-3. **Configure environment variables**  
-   Create `.env` files in each directory with:  
-   - Database credentials (PostgreSQL/Supabase)  
-   - Ethereum testnet keys (Alchemy/Sepolia)  
-   - JWT secret keys  
-
-4. **Run the system**  
-   ```bash
-   # Start frontend
-   cd client && npm run dev
-   # Start backend
-   cd ../server && npm start
-   # Deploy contracts
-   cd ../contracts && npx hardhat deploy
-   ```
-
-## 🌐 Live Demo  
-[![Demo Video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://youtube.com/watch?v=VIDEO_ID)  
-
-
 
 
