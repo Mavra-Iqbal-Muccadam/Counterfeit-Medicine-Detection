@@ -1,8 +1,8 @@
 import { ethers } from "ethers";
-import MedicineNFT from "../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
+import MedicineNFTABI from "../blockchain/abi/MedicineNFTABI.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
-const ABI = MedicineNFT.abi;
+const ABI = MedicineNFTABI;
 
 export const verifyMedicineByQRAndFetchDetails = async (ipfsHash) => {
   try {
@@ -15,11 +15,11 @@ export const verifyMedicineByQRAndFetchDetails = async (ipfsHash) => {
         medicine: {
           ...result,
           ipfsHash,
-          isNotForSale: result.message === "Verified on blockchain but not in DB"
+          isNotForSale:
+            result.message === "Verified on blockchain but not in DB",
         },
       };
-    }
-    else if (response.status === 403 && result.existsOnChain) {
+    } else if (response.status === 403 && result.existsOnChain) {
       return {
         status: "rejected",
         message: "Medicine does not exist",
@@ -29,22 +29,30 @@ export const verifyMedicineByQRAndFetchDetails = async (ipfsHash) => {
           ipfsHash: result.ipfsHash,
         },
       };
-    } else if (response.status === 200 && result.message === "Verified on blockchain but not in DB") {
+    } else if (
+      response.status === 200 &&
+      result.message === "Verified on blockchain but not in DB"
+    ) {
       return {
         status: "success", // Changed to success since it's approved
         message: " Medicine approved but not currently in sale",
         medicine: {
           ...result,
           ipfsHash,
-          isNotForSale: true
+          isNotForSale: true,
         },
       };
-    }
-    else if (response.status === 404) {
-      return { status: "not_found", message: "❌ Medicine not registered on PharmaGuard 24/7" };
+    } else if (response.status === 404) {
+      return {
+        status: "not_found",
+        message: "❌ Medicine not registered on PharmaGuard 24/7",
+      };
     }
 
-    return { status: "error", message: result.message || "Verification failed" };
+    return {
+      status: "error",
+      message: result.message || "Verification failed",
+    };
   } catch (err) {
     return { status: "error", error: err.message };
   }

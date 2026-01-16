@@ -1,12 +1,19 @@
+"use client";
 import { ethers } from "ethers";
 import ManufacturerStorage from "../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerStorage.json";
 
 const contractABI = ManufacturerStorage.abi;
 console.log("✅ ABI Loaded:", contractABI); // Debug ABI
 
-export const storeManufacturerData = async (manufacturerWallet, jsonCID, pdfCID) => {
+export const storeManufacturerData = async (
+  manufacturerWallet,
+  jsonCID,
+  pdfCID
+) => {
   try {
-    if (!window.ethereum) throw new Error("MetaMask is required!");
+    if (typeof window === "undefined" || !window.ethereum) {
+      throw new Error("MetaMask not available");
+    }
 
     console.log("✅ MetaMask detected!");
 
@@ -20,13 +27,16 @@ export const storeManufacturerData = async (manufacturerWallet, jsonCID, pdfCID)
 
     const contract = new ethers.Contract(contractAddress, contractABI, signer);
     console.log("✅ Contract instance created successfully.");
-    
+
     // Debugging: List available contract functions
     console.log("📜 Available Contract Functions:", Object.keys(contract));
 
     // 🔹 Print values being sent to blockchain
     console.log("📦 Preparing to store Manufacturer Data on Blockchain...");
-    console.log("🔹 Manufacturer Wallet (Before Checksumming):", manufacturerWallet);
+    console.log(
+      "🔹 Manufacturer Wallet (Before Checksumming):",
+      manufacturerWallet
+    );
     console.log("🔹 JSON CID:", jsonCID);
     console.log("🔹 PDF CID:", pdfCID);
 
@@ -40,20 +50,24 @@ export const storeManufacturerData = async (manufacturerWallet, jsonCID, pdfCID)
     }
 
     // 🔹 Final log before transaction
-    console.log(`🚀 Sending transaction to storeManufacturer(${validAddress}, ${jsonCID}, ${pdfCID})`);
+    console.log(
+      `🚀 Sending transaction to storeManufacturer(${validAddress}, ${jsonCID}, ${pdfCID})`
+    );
 
     const tx = await contract.storeManufacturer(validAddress, jsonCID, pdfCID);
     console.log("⏳ Transaction sent! Waiting for confirmation...", tx);
     const receipt = await tx.wait();
 
-    console.log("✅ Manufacturer Data Stored Successfully on Blockchain!", receipt);
+    console.log(
+      "✅ Manufacturer Data Stored Successfully on Blockchain!",
+      receipt
+    );
 
     return receipt; // Explicitly returning receipt
-
   } catch (error) {
     console.error("❌ Error storing manufacturer data:", error);
     if (error.reason) console.log("🔹 Revert Reason:", error.reason);
     if (error.data) console.log("🔹 Error Data:", error.data);
-    return null;  // Gracefully return null
+    return null; // Gracefully return null
   }
 };

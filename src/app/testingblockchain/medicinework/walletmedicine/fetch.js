@@ -1,9 +1,9 @@
+"use client";
 import { ethers } from "ethers";
-import MedicineNFT from "../../../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
+import MedicineNFTABI from "../../../blockchain/abi/MedicineNFTABI.json";
 import { useState, useEffect } from "react";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
-const MedicineNFTABI = MedicineNFT.abi;
 
 /**
  * Fetch all medicines for a manufacturer and return them categorized by status.
@@ -11,9 +11,8 @@ const MedicineNFTABI = MedicineNFT.abi;
  * @returns {Object} - An object containing categorized medicines.
  */
 export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return { pending: [], accepted: [], rejected: [] };
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
@@ -21,10 +20,16 @@ export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
 
     // Setup provider and contract instance
     const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFTABI, provider);
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      MedicineNFTABI,
+      provider
+    );
 
     // Get all medicine token IDs and their statuses
-    const [tokenIds, statuses] = await contract.getAllMedicinesByManufacturer(walletAddress);
+    const [tokenIds, statuses] = await contract.getAllMedicinesByManufacturer(
+      walletAddress
+    );
 
     console.log("✅ Medicine Token IDs retrieved:", tokenIds);
     console.log("✅ Corresponding statuses:", statuses);
@@ -68,7 +73,10 @@ export const fetchMedicinesByManufacturerAndStatus = async (walletAddress) => {
         else if (statusEnumValue === 1) rejected.push(medicine);
         else if (statusEnumValue === 2) accepted.push(medicine);
       } catch (err) {
-        console.warn(`⚠️ Skipping token ID ${tokenId} due to fetch/parse error:`, err);
+        console.warn(
+          `⚠️ Skipping token ID ${tokenId} due to fetch/parse error:`,
+          err
+        );
         continue;
       }
     }
@@ -91,18 +99,19 @@ export const useWallet = () => {
 
   useEffect(() => {
     const detectWallet = async () => {
-      if (window.ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const signer = await provider.getSigner();
-          const address = await signer.getAddress();
-          console.log("✅ Detected Wallet Address:", address);
-          setWalletAddress(address);
-        } catch (error) {
-          console.error("❌ Error detecting wallet:", error);
-        }
-      } else {
-        alert("❌ MetaMask not detected. Please install MetaMask.");
+      if (typeof window === "undefined" || !window.ethereum) {
+        console.error("MetaMask not available");
+        setWalletLoading(false);
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        console.log("✅ Detected Wallet Address:", address);
+        setWalletAddress(address);
+      } catch (error) {
+        console.error("❌ Error detecting wallet:", error);
       }
       setWalletLoading(false);
     };

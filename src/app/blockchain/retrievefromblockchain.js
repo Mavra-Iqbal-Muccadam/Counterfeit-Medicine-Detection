@@ -1,8 +1,9 @@
+"use client";
 import { ethers } from "ethers";
-import ManufacturerStorage from "../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerStorage.json";
+import ManufacturerNFTStorageABI from "../blockchain/abi/ManufacturerNFTStorageABI.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS; // Replace with deployed contract address
-const CONTRACT_ABI = ManufacturerStorage.abi;
+const CONTRACT_ABI = ManufacturerNFTStorageABI;
 
 // 🔹 Function to fetch JSON data from IPFS
 async function fetchIPFSData(cid) {
@@ -21,9 +22,8 @@ async function fetchIPFSData(cid) {
 
 // 🔹 Main function to get manufacturers and extract IPFS data
 export async function getApprovedManufacturers() {
-  if (!window.ethereum) {
-    alert("Please install MetaMask!");
-    return [];
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
@@ -31,9 +31,13 @@ export async function getApprovedManufacturers() {
 
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-    
+
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      CONTRACT_ABI,
+      signer
+    );
+
     console.log("📜 Available Contract Functions:", Object.keys(contract));
 
     // 🔹 Fetch manufacturers from blockchain

@@ -1,7 +1,8 @@
+"use client";
 import { BrowserProvider, Contract } from "ethers";
-import ManufacturerNFTStorage  from "../../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerNFTStorage.json";
+import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
-const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
+const ManufacturerNFTABI = ManufacturerNFTStorageABI;
 
 /**
  * Fetches manufacturers by status from the blockchain and retrieves their metadata from IPFS.
@@ -9,15 +10,18 @@ const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
  * @returns {Array} - List of manufacturers with full details based on the provided status.
  */
 export async function getManufacturersByStatus(status) {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return [];
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     console.log(`🔍 Fetching Manufacturers with status: ${status}...`);
     const provider = new BrowserProvider(window.ethereum);
-    const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, provider);
+    const contract = new Contract(
+      CONTRACT_ADDRESS,
+      ManufacturerNFTABI,
+      provider
+    );
 
     // Get manufacturers based on status
     let manufacturerData;
@@ -30,7 +34,11 @@ export async function getManufacturersByStatus(status) {
     }
 
     const [tokenIds, jsonCIDs, pdfCIDs] = manufacturerData;
-    console.log(`✅ Manufacturer Data with status ${status}:`, { tokenIds, jsonCIDs, pdfCIDs });
+    console.log(`✅ Manufacturer Data with status ${status}:`, {
+      tokenIds,
+      jsonCIDs,
+      pdfCIDs,
+    });
 
     if (!tokenIds || tokenIds.length === 0) {
       console.warn(`⚠ No manufacturers found with status ${status}.`);
@@ -47,7 +55,8 @@ export async function getManufacturersByStatus(status) {
 
         try {
           const response = await fetch(`https://ipfs.io/ipfs/${jsonCID}`);
-          if (!response.ok) throw new Error(`Failed to fetch IPFS data for ${jsonCID}`);
+          if (!response.ok)
+            throw new Error(`Failed to fetch IPFS data for ${jsonCID}`);
 
           const data = await response.json();
           console.log("✅ IPFS Data Retrieved:", data);
@@ -55,19 +64,29 @@ export async function getManufacturersByStatus(status) {
           return {
             ...data,
             tokenId: tokenId.toString(),
-            pdfCID
+            pdfCID,
           };
         } catch (fetchError) {
-          console.error("❌ Failed to fetch data from IPFS for:", jsonCID, fetchError);
+          console.error(
+            "❌ Failed to fetch data from IPFS for:",
+            jsonCID,
+            fetchError
+          );
           return null;
         }
       })
     );
 
-    console.log(`✅ Final Manufacturer Details with status ${status}:`, manufacturerDetails);
-    return manufacturerDetails.filter(data => data !== null);
+    console.log(
+      `✅ Final Manufacturer Details with status ${status}:`,
+      manufacturerDetails
+    );
+    return manufacturerDetails.filter((data) => data !== null);
   } catch (error) {
-    console.error(`❌ Error fetching manufacturers with status ${status}:`, error);
+    console.error(
+      `❌ Error fetching manufacturers with status ${status}:`,
+      error
+    );
     throw new Error(`Failed to fetch manufacturers with status ${status}`);
   }
 }

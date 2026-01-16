@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import ManufacturerRegistrationForm from "../manufacturerregistrationform/page";
-import ConnectWallet from "./connect-wallet";
+import ConnectWallet from "../connect-wallet.js/page";
 
 export default function App() {
   const [walletAddress, setWalletAddress] = useState("");

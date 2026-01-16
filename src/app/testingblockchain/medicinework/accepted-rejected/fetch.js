@@ -1,7 +1,7 @@
+"use client";
 import { ethers } from "ethers";
-import MedicineNFT from "../../../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
+import MedicineNFTABI from "../../../blockchain/abi/MedicineNFTABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
-const MedicineNFTABI = MedicineNFT.abi;
 
 /**
  * Fetches accepted or rejected medicines from the blockchain.
@@ -9,15 +9,18 @@ const MedicineNFTABI = MedicineNFT.abi;
  * @returns {Array} - List of medicines with full details.
  */
 export const fetchMedicinesByStatus = async (status) => {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return [];
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     console.log(`🔍 Fetching ${status} medicines...`);
     const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFTABI, provider);
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      MedicineNFTABI,
+      provider
+    );
 
     // ✅ Use the correct function names
     let tokenIds;
@@ -38,7 +41,7 @@ export const fetchMedicinesByStatus = async (status) => {
       const ipfsUrl = `https://ipfs.io/ipfs/${tokenURI}`;
 
       console.log(`🌍 Fetching metadata from IPFS: ${ipfsUrl}`);
-      
+
       const response = await fetch(ipfsUrl);
       const metadata = await response.json();
 

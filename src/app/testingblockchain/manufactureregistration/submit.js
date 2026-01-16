@@ -1,8 +1,12 @@
+"use client";
 import { BrowserProvider, Contract } from "ethers";
-import { uploadJSONToPinata, uploadPDFFromURLToPinata } from "../../../../pages/api/ipfs/uploadToIPFS";
-import ManufacturerNFTStorage  from "../../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerNFTStorage.json";
+import {
+  uploadJSONToPinata,
+  uploadPDFFromURLToPinata,
+} from "../../../../pages/api/ipfs/uploadToIPFS";
+import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
-const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
+const ManufacturerNFTABI = ManufacturerNFTStorageABI;
 
 export async function storeManufacturerData(formData, setInfoMsgCallback) {
   try {
@@ -21,10 +25,15 @@ export async function storeManufacturerData(formData, setInfoMsgCallback) {
       status: "Pending",
     });
 
-    const pdfCID = await uploadPDFFromURLToPinata(URL.createObjectURL(formData.pdf));
+    const pdfCID = await uploadPDFFromURLToPinata(
+      URL.createObjectURL(formData.pdf)
+    );
 
     console.log("✅ IPFS Upload Complete");
-    setInfoMsgCallback({ open: true, message: "Please confirm transaction in MetaMask..." });
+    setInfoMsgCallback({
+      open: true,
+      message: "Please confirm transaction in MetaMask...",
+    });
 
     // Validate CIDs
     function isValidCID(cid) {
@@ -36,7 +45,12 @@ export async function storeManufacturerData(formData, setInfoMsgCallback) {
       throw new Error("Invalid IPFS CID format");
     }
 
-    await storeOnBlockchain(formData.walletAddress, jsonCID, pdfCID, setInfoMsgCallback);
+    await storeOnBlockchain(
+      formData.walletAddress,
+      jsonCID,
+      pdfCID,
+      setInfoMsgCallback
+    );
   } catch (error) {
     console.error("❌ Error storing data:", error);
     setInfoMsgCallback({ open: false, message: "" });
@@ -45,9 +59,8 @@ export async function storeManufacturerData(formData, setInfoMsgCallback) {
 }
 
 async function storeOnBlockchain(walletAddress, jsonCID, pdfCID) {
-  if (!window.ethereum) {
-    alert("Please install MetaMask!");
-    return;
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   const provider = new BrowserProvider(window.ethereum);

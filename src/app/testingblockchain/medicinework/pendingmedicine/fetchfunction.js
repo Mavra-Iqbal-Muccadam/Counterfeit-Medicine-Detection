@@ -1,22 +1,25 @@
+"use client";
 import { ethers } from "ethers";
-import MedicineNFT from "../../../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
+import MedicineNFTABI from "../../../blockchain/abi/MedicineNFTABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS; // ✅ Ensure this is correctly set in your .env file
-const MedicineNFTABI = MedicineNFT.abi;
 
 /**
  * Fetch pending medicines from the blockchain and retrieve their metadata from IPFS.
  * @returns {Array} - List of pending medicines with full details.
  */
 export const fetchPendingMedicines = async () => {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return [];
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     console.log("🔍 Fetching pending medicines...");
     const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFTABI, provider);
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      MedicineNFTABI,
+      provider
+    );
 
     const pendingTokenIds = await contract.getPendingMedicines();
     console.log("✅ Pending Medicine IDs:", pendingTokenIds);
@@ -27,7 +30,7 @@ export const fetchPendingMedicines = async () => {
       const ipfsUrl = `https://ipfs.io/ipfs/${tokenURI}`;
 
       console.log(`🌍 Fetching metadata from IPFS: ${ipfsUrl}`);
-      
+
       const response = await fetch(ipfsUrl);
       const metadata = await response.json();
 
@@ -59,10 +62,6 @@ export const fetchPendingMedicines = async () => {
   }
 };
 
-
-
-
-
 /**
  * Updates the status of a medicine on the blockchain.
  * @param {string} tokenId - The token ID of the medicine.
@@ -70,34 +69,39 @@ export const fetchPendingMedicines = async () => {
  * @returns {boolean} - Returns true if the transaction is successful.
  */
 export const updateMedicineStatus = async (tokenId, newStatus) => {
-    if (!window.ethereum) {
-      alert("❌ MetaMask not detected. Please install MetaMask.");
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
+  }
+
+  try {
+    console.log(`🔄 Updating status of Token ID ${tokenId} to ${newStatus}...`);
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      MedicineNFTABI,
+      signer
+    );
+
+    // ✅ Convert status to contract enum value
+    const statusMapping = { Pending: 0, Rejected: 1, Accepted: 2 };
+    const statusEnumValue = statusMapping[newStatus];
+
+    // ✅ Send transaction to update status
+    const tx = await contract.updateStatus(tokenId, statusEnumValue);
+    const receipt = await tx.wait(); // Wait for confirmation
+
+    if (receipt.status === 1) {
+      console.log(
+        `✅ Medicine status updated successfully: Token ID ${tokenId} -> ${newStatus}`
+      );
+      return true;
+    } else {
+      console.error("❌ Transaction failed");
       return false;
     }
-  
-    try {
-      console.log(`🔄 Updating status of Token ID ${tokenId} to ${newStatus}...`);
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFTABI, signer);
-  
-      // ✅ Convert status to contract enum value
-      const statusMapping = { "Pending": 0, "Rejected": 1, "Accepted": 2 };
-      const statusEnumValue = statusMapping[newStatus];
-  
-      // ✅ Send transaction to update status
-      const tx = await contract.updateStatus(tokenId, statusEnumValue);
-      const receipt = await tx.wait(); // Wait for confirmation
-  
-      if (receipt.status === 1) {
-        console.log(`✅ Medicine status updated successfully: Token ID ${tokenId} -> ${newStatus}`);
-        return true;
-      } else {
-        console.error("❌ Transaction failed");
-        return false;
-      }
-    } catch (error) {
-      console.error("❌ Error updating medicine status:", error);
-      throw error; // Throw the error to be caught by the calling function
-    }
-  };
+  } catch (error) {
+    console.error("❌ Error updating medicine status:", error);
+    throw error; // Throw the error to be caught by the calling function
+  }
+};

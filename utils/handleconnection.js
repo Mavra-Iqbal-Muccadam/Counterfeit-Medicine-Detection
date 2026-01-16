@@ -1,14 +1,9 @@
+"use client";
 import { ethers } from "ethers";
 
 export async function connectMetaMask() {
-  if (typeof window === "undefined") {
-    console.error("❌ MetaMask cannot be accessed on the server.");
-    return null;
-  }
-
-  if (!window.ethereum) {
-    console.error("❌ MetaMask is not installed.");
-    return null;
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {

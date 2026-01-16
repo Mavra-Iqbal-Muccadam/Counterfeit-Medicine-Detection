@@ -1,17 +1,19 @@
+"use client";
 import { storeMedicineOnIPFS } from "../../../pages/api/ipfs/medicine"; // Import IPFS function
 import { ethers } from "ethers"; // ✅ Import ethers v6
-import MedicineNFT from "../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json"; // ✅ Import ABI
-
+import MedicineNFTABI from "../blockchain/abi/MedicineNFTABI.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
 // ✅ Replace with deployed MedicineNFT contract address
-const MedicineNFTABI = MedicineNFT.abi; 
 export const handleSubmit = async (e, medicine, setMedicine) => {
   e.preventDefault();
   console.log("🚀 Uploading medicine data to IPFS...");
 
   console.log("📂 Files Before Submission:", medicine.files);
-  console.log("📜 Medicine Data Before Upload:", JSON.stringify(medicine, null, 2));
+  console.log(
+    "📜 Medicine Data Before Upload:",
+    JSON.stringify(medicine, null, 2)
+  );
 
   // ✅ Store data & files on IPFS and get all hashes
   const ipfsData = await storeMedicineOnIPFS(medicine);
@@ -57,16 +59,19 @@ export const handleSubmit = async (e, medicine, setMedicine) => {
 
 // ✅ Function to mint Medicine NFT on Blockchain
 const mintMedicineNFT = async (manufacturerId, ipfsHash) => {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return null;
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     console.log("🔗 Connecting to MetaMask...");
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, MedicineNFT.abi, signer);
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      MedicineNFTABI,
+      signer
+    );
 
     console.log("📜 Minting Medicine NFT...");
     const tx = await contract.mintMedicine(manufacturerId, ipfsHash);
@@ -75,7 +80,7 @@ const mintMedicineNFT = async (manufacturerId, ipfsHash) => {
     console.log("✅ Transaction Receipt:", receipt);
 
     // ✅ Fix: Extract Token ID from event logs
-    const iface = new ethers.Interface(MedicineNFT.abi);
+    const iface = new ethers.Interface(MedicineNFTABI);
     let tokenId = null;
     for (let log of receipt.logs) {
       try {
@@ -102,8 +107,6 @@ const mintMedicineNFT = async (manufacturerId, ipfsHash) => {
   }
 };
 
-
-
 // ✅ Function to detect connected wallet
 export const detectWallet = async (setMedicine) => {
   if (typeof window === "undefined") {
@@ -112,8 +115,7 @@ export const detectWallet = async (setMedicine) => {
   }
 
   if (!window.ethereum) {
-    console.warn("❌ MetaMask not detected.");
-    return;
+    throw new Error("MetaMask not available");
   }
 
   try {

@@ -1,8 +1,9 @@
+"use client";
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract } from "ethers";
-import ManufacturerNFTStorage  from "../../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerNFTStorage.json";
+import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
-const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
+const ManufacturerNFTABI = ManufacturerNFTStorageABI;
 
 export default function useManufacturerDetails() {
   const [walletAddress, setWalletAddress] = useState(null);
@@ -11,36 +12,44 @@ export default function useManufacturerDetails() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (window.ethereum) {
-      const provider = new BrowserProvider(window.ethereum);
-
-      // Detect wallet address
-      async function fetchWalletDetails() {
-        try {
-          const signer = await provider.getSigner();
-          const address = await signer.getAddress();
-          setWalletAddress(address);
-
-          // Fetch manufacturer details from contract
-          const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, signer);
-          const [jsonCID, pdfCID, status] = await contract.getIndividualManufacturer(address);
-          setManufacturerDetails({
-            jsonCID,
-            pdfCID,
-            status: status.toString() // Convert Status Enum to String
-          });
-        } catch (err) {
-          setError("Failed to fetch details. Make sure you're connected to MetaMask.");
-        } finally {
-          setLoading(false);
-        }
-      }
-
-      fetchWalletDetails();
-    } else {
-      setError("Please install MetaMask!");
+    if (typeof window === "undefined" || !window.ethereum) {
+      setError("MetaMask not available");
       setLoading(false);
+      return;
     }
+
+    const provider = new BrowserProvider(window.ethereum);
+
+    // Detect wallet address
+    async function fetchWalletDetails() {
+      try {
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+        setWalletAddress(address);
+
+        // Fetch manufacturer details from contract
+        const contract = new Contract(
+          CONTRACT_ADDRESS,
+          ManufacturerNFTABI,
+          signer
+        );
+        const [jsonCID, pdfCID, status] =
+          await contract.getIndividualManufacturer(address);
+        setManufacturerDetails({
+          jsonCID,
+          pdfCID,
+          status: status.toString(), // Convert Status Enum to String
+        });
+      } catch (err) {
+        setError(
+          "Failed to fetch details. Make sure you're connected to MetaMask."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchWalletDetails();
   }, []);
 
   return { walletAddress, manufacturerDetails, loading, error };

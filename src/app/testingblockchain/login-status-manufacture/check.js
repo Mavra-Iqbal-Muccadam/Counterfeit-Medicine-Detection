@@ -1,7 +1,8 @@
+"use client";
 import { BrowserProvider, Contract } from "ethers";
-import ManufacturerNFTStorage  from "../../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerNFTStorage.json";
+import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
-const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
+const ManufacturerNFTABI = ManufacturerNFTStorageABI;
 
 /**
  * ✅ Fetch Manufacturer Status
@@ -9,14 +10,17 @@ const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
  * @returns {string} - Manufacturer status (Pending, Approved, Rejected)
  */
 export async function getManufacturerStatus(walletAddress) {
-  if (!window.ethereum) {
-    alert("❌ MetaMask is not installed!");
-    return null;
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     const provider = new BrowserProvider(window.ethereum);
-    const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, provider);
+    const contract = new Contract(
+      CONTRACT_ADDRESS,
+      ManufacturerNFTABI,
+      provider
+    );
 
     console.log(`🔍 Checking status of ${walletAddress}...`);
     const statusEnum = await contract.getManufacturerStatus(walletAddress);
@@ -35,9 +39,8 @@ export async function getManufacturerStatus(walletAddress) {
  * @returns {string} - Login status
  */
 export async function loginWithMetaMask() {
-  if (!window.ethereum) {
-    alert("❌ MetaMask is not installed!");
-    return "MetaMask not installed";
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
@@ -46,10 +49,16 @@ export async function loginWithMetaMask() {
     const userWallet = await signer.getAddress();
 
     console.log(`🔍 Logging in as ${userWallet}...`);
-    const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, provider);
+    const contract = new Contract(
+      CONTRACT_ADDRESS,
+      ManufacturerNFTABI,
+      provider
+    );
 
     const isApproved = await contract.login(userWallet);
-    return isApproved ? "Login Successful ✅" : "Login Failed ❌ (Manufacturer Not Approved)";
+    return isApproved
+      ? "Login Successful ✅"
+      : "Login Failed ❌ (Manufacturer Not Approved)";
   } catch (error) {
     console.error("❌ Error during login:", error);
     return "Login failed :❌ Manufacturer Not Approved";

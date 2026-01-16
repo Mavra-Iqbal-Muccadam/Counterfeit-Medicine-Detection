@@ -1,26 +1,35 @@
+"use client";
 import { BrowserProvider, Contract } from "ethers";
-import ManufacturerNFTStorage  from "../../../../blockchain/artifacts/contracts/manufacturerregistration.sol/ManufacturerNFTStorage.json";
+import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
-const ManufacturerNFTABI = ManufacturerNFTStorage.abi;
+const ManufacturerNFTABI = ManufacturerNFTStorageABI;
 
 /**
  * Fetches pending manufacturers from the blockchain and retrieves their metadata from IPFS.
  * @returns {Array} - List of pending manufacturers with full details.
  */
 export async function getPendingManufacturers() {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return [];
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
     console.log("🔍 Calling getPendingManufacturers() on contract...");
     const provider = new BrowserProvider(window.ethereum);
-    const contract = new Contract(CONTRACT_ADDRESS, ManufacturerNFTABI, provider);
+    const contract = new Contract(
+      CONTRACT_ADDRESS,
+      ManufacturerNFTABI,
+      provider
+    );
 
     // ✅ Get both token IDs, JSON CIDs, and PDF CIDs from the contract
-    const [pendingTokenIds, pendingJSONCIDs, pendingPDFCIDs] = await contract.getPendingManufacturers();
-    console.log("✅ Retrieved Pending Manufacturers:", { pendingTokenIds, pendingJSONCIDs, pendingPDFCIDs });
+    const [pendingTokenIds, pendingJSONCIDs, pendingPDFCIDs] =
+      await contract.getPendingManufacturers();
+    console.log("✅ Retrieved Pending Manufacturers:", {
+      pendingTokenIds,
+      pendingJSONCIDs,
+      pendingPDFCIDs,
+    });
 
     if (!pendingTokenIds || pendingTokenIds.length === 0) {
       console.warn("⚠ No pending manufacturers found.");
@@ -37,25 +46,30 @@ export async function getPendingManufacturers() {
 
         try {
           const response = await fetch(`https://ipfs.io/ipfs/${jsonCID}`);
-          if (!response.ok) throw new Error(`Failed to fetch IPFS data for ${jsonCID}`);
+          if (!response.ok)
+            throw new Error(`Failed to fetch IPFS data for ${jsonCID}`);
 
           const data = await response.json();
           console.log("✅ IPFS Data Retrieved:", data);
 
-          return { 
-            ...data, 
-            tokenId: tokenId.toString(), 
-            pdfCID // ✅ Include PDF CID
+          return {
+            ...data,
+            tokenId: tokenId.toString(),
+            pdfCID, // ✅ Include PDF CID
           };
         } catch (fetchError) {
-          console.error("❌ Failed to fetch data from IPFS for:", jsonCID, fetchError);
+          console.error(
+            "❌ Failed to fetch data from IPFS for:",
+            jsonCID,
+            fetchError
+          );
           return null;
         }
       })
     );
 
     console.log("✅ Final Manufacturer Details:", manufacturerDetails);
-    return manufacturerDetails.filter(data => data !== null);
+    return manufacturerDetails.filter((data) => data !== null);
   } catch (error) {
     console.error("❌ Error fetching pending manufacturers:", error);
     throw new Error("Failed to fetch pending manufacturers");
@@ -69,9 +83,8 @@ export async function getPendingManufacturers() {
  * @returns {boolean} - Returns true if the update was successful, otherwise false.
  */
 export async function updateManufacturerStatus(tokenId, newStatus) {
-  if (!window.ethereum) {
-    alert("❌ MetaMask not detected. Please install MetaMask.");
-    return false;
+  if (typeof window === "undefined" || !window.ethereum) {
+    throw new Error("MetaMask not available");
   }
 
   try {
@@ -83,9 +96,9 @@ export async function updateManufacturerStatus(tokenId, newStatus) {
 
     // Mapping status strings to the respective enum integer values
     const statusMapping = {
-      "Pending": 0,
-      "Approved": 1,
-      "Rejected": 2
+      Pending: 0,
+      Approved: 1,
+      Rejected: 2,
     };
 
     // Ensure that the status is valid and in the correct format
@@ -97,8 +110,13 @@ export async function updateManufacturerStatus(tokenId, newStatus) {
 
     const statusEnumValue = statusMapping[newStatus]; // Convert to enum integer value
 
-    console.log(`📌 Sending transaction: Token ID ${tokenId}, Status ${statusEnumValue}`);
-    const tx = await contract.updateManufacturerStatus(tokenId, statusEnumValue); // Pass the integer value to the contract
+    console.log(
+      `📌 Sending transaction: Token ID ${tokenId}, Status ${statusEnumValue}`
+    );
+    const tx = await contract.updateManufacturerStatus(
+      tokenId,
+      statusEnumValue
+    ); // Pass the integer value to the contract
     console.log("🔄 Transaction Sent:", tx);
 
     const receipt = await tx.wait();

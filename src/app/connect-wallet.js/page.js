@@ -34,9 +34,13 @@ export default function ManufacturerRegistrationForm({ walletAddress }) {
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(
+        contractAddress,
+        contractABI,
+        signer
+      );
 
       const tx = await contract.registerManufacturer(
         formData.name,
@@ -58,15 +62,33 @@ export default function ManufacturerRegistrationForm({ walletAddress }) {
       <form onSubmit={handleSubmit}>
         <div>
           <label>Name</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div>
           <label>Email</label>
-          <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div>
           <label>Phone</label>
-          <input type="text" name="phone" value={formData.phone} onChange={handleChange} required />
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div>
           <label>Business License Number</label>
@@ -80,7 +102,13 @@ export default function ManufacturerRegistrationForm({ walletAddress }) {
         </div>
         <div>
           <label>Address</label>
-          <input type="text" name="address" value={formData.address} onChange={handleChange} required />
+          <input
+            type="text"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div>
           <label>Blockchain Wallet Address</label>

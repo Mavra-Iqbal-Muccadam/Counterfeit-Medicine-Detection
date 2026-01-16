@@ -1,9 +1,9 @@
 import { supabase } from "../../../lib/supabaseClientanon";
 import { ethers } from "ethers";
-import MedicineNFT from "../../../blockchain/artifacts/contracts/medicine.sol/MedicineNFT.json";
+import MedicineNFTABI from "../../../src/app/blockchain/abi/MedicineNFTABI.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
-const ABI = MedicineNFT.abi;
+const ABI = MedicineNFTABI;
 
 // ✅ BigInt-safe JSON replacer
 const replacer = (_, value) => (typeof value === "bigint" ? value.toString() : value);

@@ -10,13 +10,14 @@ const ManufacturerPage = () => {
 
   // ✅ Auto-Detect MetaMask Wallet
   const detectMetaMaskWallet = async () => {
-    if (!window.ethereum) {
-      setError("❌ MetaMask is not installed!");
-      return;
+    if (typeof window === "undefined" || !window.ethereum) {
+      throw new Error("MetaMask not available");
     }
 
     try {
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
 
       if (accounts.length > 0) {
         setWallet(accounts[0]); // ✅ Auto-detect wallet
@@ -57,21 +58,53 @@ const ManufacturerPage = () => {
       <h1 className="text-2xl font-bold mb-4">Manufacturer Details</h1>
 
       {error && <p className="text-red-500">{error}</p>}
-      
+
       {loading ? (
         <p className="text-blue-500">⏳ Fetching details...</p>
       ) : manufacturer ? (
         <div className="mt-4 p-4 border rounded-md">
-          <p><strong>Wallet:</strong> {manufacturer.wallet}</p>
-          <p><strong>Approved:</strong> {manufacturer.isApproved ? "✅ Approved" : "❌ Not Approved"}</p>
-          <p><strong>PDF CID:</strong> <a href={`https://ipfs.io/ipfs/${manufacturer.pdfCID}`} target="_blank" className="text-blue-500">View PDF</a></p>
+          <p>
+            <strong>Wallet:</strong> {manufacturer.wallet}
+          </p>
+          <p>
+            <strong>Approved:</strong>{" "}
+            {manufacturer.isApproved ? "✅ Approved" : "❌ Not Approved"}
+          </p>
+          <p>
+            <strong>PDF CID:</strong>{" "}
+            <a
+              href={`https://ipfs.io/ipfs/${manufacturer.pdfCID}`}
+              target="_blank"
+              className="text-blue-500"
+            >
+              View PDF
+            </a>
+          </p>
 
           {manufacturer.ipfsData ? (
             <div className="mt-2">
-              <p><strong>Company Name:</strong> {manufacturer.ipfsData.name || "N/A"}</p>
-              <p><strong>Location:</strong> {manufacturer.ipfsData.location || "N/A"}</p>
-              <p><strong>Product:</strong> {manufacturer.ipfsData.product || "N/A"}</p>
-              <p><strong>Website:</strong> <a href={manufacturer.ipfsData.website} target="_blank" className="text-blue-500">{manufacturer.ipfsData.website}</a></p>
+              <p>
+                <strong>Company Name:</strong>{" "}
+                {manufacturer.ipfsData.name || "N/A"}
+              </p>
+              <p>
+                <strong>Location:</strong>{" "}
+                {manufacturer.ipfsData.location || "N/A"}
+              </p>
+              <p>
+                <strong>Product:</strong>{" "}
+                {manufacturer.ipfsData.product || "N/A"}
+              </p>
+              <p>
+                <strong>Website:</strong>{" "}
+                <a
+                  href={manufacturer.ipfsData.website}
+                  target="_blank"
+                  className="text-blue-500"
+                >
+                  {manufacturer.ipfsData.website}
+                </a>
+              </p>
             </div>
           ) : (
             <p className="text-red-500 mt-2">⚠ Unable to load IPFS data.</p>
