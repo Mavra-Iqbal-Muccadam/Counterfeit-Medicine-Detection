@@ -3,7 +3,7 @@ import { BrowserProvider, Contract } from "ethers";
 import {
   uploadJSONToPinata,
   uploadPDFFromURLToPinata,
-} from "../../../../pages/api/ipfs/uploadToIPFS";
+} from "@/pages/api/ipfs/uploadToIPFS";
 import ManufacturerNFTStorageABI from "../../blockchain/abi/ManufacturerNFTStorageABI.json";
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MANUFACTURE_CONTRACT_ADDRESS;
 const ManufacturerNFTABI = ManufacturerNFTStorageABI;
@@ -26,7 +26,7 @@ export async function storeManufacturerData(formData, setInfoMsgCallback) {
     });
 
     const pdfCID = await uploadPDFFromURLToPinata(
-      URL.createObjectURL(formData.pdf)
+      URL.createObjectURL(formData.pdf),
     );
 
     console.log("✅ IPFS Upload Complete");
@@ -49,7 +49,7 @@ export async function storeManufacturerData(formData, setInfoMsgCallback) {
       formData.walletAddress,
       jsonCID,
       pdfCID,
-      setInfoMsgCallback
+      setInfoMsgCallback,
     );
   } catch (error) {
     console.error("❌ Error storing data:", error);

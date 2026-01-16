@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import "dotenv/config";
-import insertPendingManufacturer from "../../../lib/insertpendingmanufacturer"; // Import insertion logic
+import insertPendingManufacturer from "@/lib/insertpendingmanufacturer"; // Import insertion logic
 
 console.log("🛠 [DEBUG] Checking if ethers is loaded:", ethers);
 
@@ -21,14 +21,27 @@ export default async function handler(req, res) {
 
     // ✅ Validate Ethereum Wallet Address
     if (!ethers.isAddress(walletAddress.trim())) {
-      console.error("❌ [ERROR] Invalid Ethereum Wallet Address:", `"${walletAddress}"`);
-      return res.status(400).json({ error: "Invalid Ethereum wallet address!" });
+      console.error(
+        "❌ [ERROR] Invalid Ethereum Wallet Address:",
+        `"${walletAddress}"`,
+      );
+      return res
+        .status(400)
+        .json({ error: "Invalid Ethereum wallet address!" });
     }
 
     // ✅ Validate Required Environment Variables
-    if (!process.env.BLOCKCHAIN_RPC_URL || !process.env.PRIVATE_KEY || !process.env.CONTRACT_ADDRESS) {
+    if (
+      !process.env.BLOCKCHAIN_RPC_URL ||
+      !process.env.PRIVATE_KEY ||
+      !process.env.CONTRACT_ADDRESS
+    ) {
       console.error("❌ [ERROR] Missing Blockchain Environment Variables!");
-      return res.status(500).json({ error: "Required blockchain environment variables are missing!" });
+      return res
+        .status(500)
+        .json({
+          error: "Required blockchain environment variables are missing!",
+        });
     }
 
     // ✅ Connect to Blockchain
@@ -39,7 +52,11 @@ export default async function handler(req, res) {
       "function registerData(string ipfsHash, address walletAddress, string status) public",
     ];
 
-    const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, abi, wallet);
+    const contract = new ethers.Contract(
+      process.env.CONTRACT_ADDRESS,
+      abi,
+      wallet,
+    );
 
     console.log("🚀 [DEBUG] Sending Transaction to Blockchain...");
     const tx = await contract.registerData(ipfsHash, walletAddress, status);
@@ -61,30 +78,41 @@ export default async function handler(req, res) {
       });
 
       if (!dbResponse.success) {
-        console.error("❌ [ERROR] Database Insertion Failed:", dbResponse.error);
+        console.error(
+          "❌ [ERROR] Database Insertion Failed:",
+          dbResponse.error,
+        );
       } else {
-        console.log("✅ [SUCCESS] Data Successfully Inserted into Database:", dbResponse.data);
+        console.log(
+          "✅ [SUCCESS] Data Successfully Inserted into Database:",
+          dbResponse.data,
+        );
       }
-
     } catch (dbError) {
       console.error("❌ [ERROR] Failed to Insert Data into Database:", dbError);
     }
 
     res.status(200).json({
-      message: "Data registered successfully on the blockchain and stored in the database!",
+      message:
+        "Data registered successfully on the blockchain and stored in the database!",
       transactionHash: receipt.hash,
     });
-
   } catch (error) {
     console.error("❌ [ERROR] Blockchain Transaction Failed:", error);
 
     if (error.code === "INSUFFICIENT_FUNDS") {
-      return res.status(500).json({ error: "Insufficient funds for transaction!" });
+      return res
+        .status(500)
+        .json({ error: "Insufficient funds for transaction!" });
     }
     if (error.code === "CALL_EXCEPTION") {
-      return res.status(500).json({ error: "Smart contract execution failed!" });
+      return res
+        .status(500)
+        .json({ error: "Smart contract execution failed!" });
     }
 
-    res.status(500).json({ error: "Failed to register data on the blockchain." });
+    res
+      .status(500)
+      .json({ error: "Failed to register data on the blockchain." });
   }
 }

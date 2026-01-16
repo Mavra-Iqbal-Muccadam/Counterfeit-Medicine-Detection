@@ -100,11 +100,7 @@
 //   }
 // }
 
-
-
-
-
-import { supabase } from "../../../lib/supabaseClientservice";
+import { supabase } from "@/lib/supabaseClientservice";
 
 export default async function handler(req, res) {
   console.log("🚀 API called: /api/certificateupload/savedata");
@@ -148,7 +144,6 @@ export default async function handler(req, res) {
 
     const bucketName = "certification_pdf_storage";
     const fileName = `certificate_${Date.now()}.pdf`;
-
 
     console.log("📤 Uploading PDF to Supabase Storage...");
     const { data: uploadData, error: uploadError } = await supabase.storage

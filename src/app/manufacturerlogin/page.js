@@ -20,7 +20,7 @@ import {
   InfoMsgBox,
   StatusMsgBox,
 } from "../components/MsgBox";
-import { fetchRejectionComments } from "../../../lib/adminmanufacturerfetch";
+import { fetchRejectionComments } from "@/lib/adminmanufacturerfetch";
 import Link from "next/link";
 import NavBar from "../components/NavBar";
 import { FooterSection } from "../userstore/sections/FooterSection";
@@ -90,7 +90,7 @@ const ManufacturerLogin = () => {
       } else if (result.includes("Rejected")) {
         const comments = await fetchRejectionComments(inputValue);
         setErrorMessage(
-          `Your manufacturer account has been rejected. Reason: ${comments}`
+          `Your manufacturer account has been rejected. Reason: ${comments}`,
         );
         setErrorOpen(true);
       } else {
@@ -132,7 +132,7 @@ const ManufacturerLogin = () => {
 
         const comments = await fetchRejectionComments(walletAddress);
         setErrorMessage(
-          `Your manufacturer account is not approved. Reason: ${comments}`
+          `Your manufacturer account is not approved. Reason: ${comments}`,
         );
         setErrorOpen(true);
       } else {

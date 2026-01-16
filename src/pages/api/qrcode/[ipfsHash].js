@@ -1,12 +1,13 @@
-import { supabase } from "../../../lib/supabaseClientanon";
+import { supabase } from "@/lib/supabaseClientanon";
 import { ethers } from "ethers";
-import MedicineNFTABI from "../../../src/app/blockchain/abi/MedicineNFTABI.json";
+import MedicineNFTABI from "@/app/blockchain/abi/MedicineNFTABI.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MEDICINE_NFT_ADDRESS;
 const ABI = MedicineNFTABI;
 
 // ✅ BigInt-safe JSON replacer
-const replacer = (_, value) => (typeof value === "bigint" ? value.toString() : value);
+const replacer = (_, value) =>
+  typeof value === "bigint" ? value.toString() : value;
 
 export default async function handler(req, res) {
   const { ipfsHash } = req.query;
@@ -26,13 +27,20 @@ export default async function handler(req, res) {
     if (!isValid) {
       if (tokenId === 0n) {
         console.log("❌ Medicine not found on blockchain (tokenId = 0)");
-        return res.status(404).end(JSON.stringify({
-          message: "Medicine not found on blockchain",
-          existsOnChain: false
-        }, replacer));
+        return res.status(404).end(
+          JSON.stringify(
+            {
+              message: "Medicine not found on blockchain",
+              existsOnChain: false,
+            },
+            replacer,
+          ),
+        );
       }
 
-      console.log("⚠ Medicine exists but not verified/approved. Fetching IPFS metadata...");
+      console.log(
+        "⚠ Medicine exists but not verified/approved. Fetching IPFS metadata...",
+      );
       const medicine = await contract.medicines(tokenId);
       const tokenURI = await contract.tokenURI(tokenId);
       const ipfsUrl = `https://ipfs.io/ipfs/${tokenURI}`;
@@ -40,14 +48,19 @@ export default async function handler(req, res) {
       const metadataResponse = await fetch(ipfsUrl);
       const ipfsData = await metadataResponse.json();
 
-      return res.status(403).end(JSON.stringify({
-        message: "Medicine exists but not approved",
-        existsOnChain: true,
-        status: medicine.status,
-        name: ipfsData.name,
-        ipfsHash,
-        tokenId,
-      }, replacer));
+      return res.status(403).end(
+        JSON.stringify(
+          {
+            message: "Medicine exists but not approved",
+            existsOnChain: true,
+            status: medicine.status,
+            name: ipfsData.name,
+            ipfsHash,
+            tokenId,
+          },
+          replacer,
+        ),
+      );
     }
 
     // At this point, it's verified ✅
@@ -66,29 +79,38 @@ export default async function handler(req, res) {
       const metadataResponse = await fetch(ipfsUrl);
       const ipfsData = await metadataResponse.json();
 
-      return res.status(200).end(JSON.stringify({
-        message: "Verified on blockchain but not in DB",
-        tokenId,
-        ipfsHash,
-        status: "Accepted",
-        name: ipfsData.name,
-        description: ipfsData.description,
-        image_url: ipfsData.image_url,
-        isNotForSale: true,
-      }, replacer));
+      return res.status(200).end(
+        JSON.stringify(
+          {
+            message: "Verified on blockchain but not in DB",
+            tokenId,
+            ipfsHash,
+            status: "Accepted",
+            name: ipfsData.name,
+            description: ipfsData.description,
+            image_url: ipfsData.image_url,
+            isNotForSale: true,
+          },
+          replacer,
+        ),
+      );
     }
 
     // Fully verified & in database ✅
     console.log("✅ Found in Supabase:", data);
-    return res.status(200).end(JSON.stringify({
-      message: "Medicine verified and found in database",
-      tokenId,
-      ipfsHash,
-      status: "Accepted",
-      isNotForSale: false,
-      ...data
-    }, replacer));
-
+    return res.status(200).end(
+      JSON.stringify(
+        {
+          message: "Medicine verified and found in database",
+          tokenId,
+          ipfsHash,
+          status: "Accepted",
+          isNotForSale: false,
+          ...data,
+        },
+        replacer,
+      ),
+    );
   } catch (err) {
     console.error("❌ Error verifying hash:", err);
     if (err.code === "ECONNREFUSED" || err.message.includes("getaddrinfo")) {

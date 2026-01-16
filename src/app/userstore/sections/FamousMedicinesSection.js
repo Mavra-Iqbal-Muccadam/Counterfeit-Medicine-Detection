@@ -1,14 +1,26 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Typography, Card, CardMedia, CardContent, Button, IconButton, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  Button,
+  IconButton,
+  CircularProgress,
+} from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 // ✅ Import your existing fetch function
-import { fetchAllMedicines } from "../../../../lib/saleMedicineDb"; // change path as per your project
+import { fetchAllMedicines } from "@/lib/saleMedicineDb"; // change path as per your project
 
-export const FamousMedicinesSection = ({ title = "Most Famous Medicines", showOnlyDiscounted = false }) => {
+export const FamousMedicinesSection = ({
+  title = "Most Famous Medicines",
+  showOnlyDiscounted = false,
+}) => {
   const scrollRef = useRef(null);
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,23 +46,35 @@ export const FamousMedicinesSection = ({ title = "Most Famous Medicines", showOn
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
-  
 
   const medicinesToShow = showOnlyDiscounted
-    ? medicines.filter(medicine => medicine.discount)
+    ? medicines.filter((medicine) => medicine.discount)
     : medicines;
 
   return (
     <Box id="famous" sx={{ ml: 3, mt: 10 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
         <Typography variant="h5" sx={{ fontWeight: "bold", textAlign: "left" }}>
           {title}
         </Typography>
         <Box>
-          <IconButton onClick={() => handleScroll("left")} sx={{ backgroundColor: "#f5f5f5", mr: 1 }}>
+          <IconButton
+            onClick={() => handleScroll("left")}
+            sx={{ backgroundColor: "#f5f5f5", mr: 1 }}
+          >
             <ChevronLeftIcon />
           </IconButton>
-          <IconButton onClick={() => handleScroll("right")} sx={{ backgroundColor: "#f5f5f5" }}>
+          <IconButton
+            onClick={() => handleScroll("right")}
+            sx={{ backgroundColor: "#f5f5f5" }}
+          >
             <ChevronRightIcon />
           </IconButton>
         </Box>
@@ -119,29 +143,52 @@ export const FamousMedicinesSection = ({ title = "Most Famous Medicines", showOn
               />
 
               <CardContent sx={{ textAlign: "center" }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: "16px" }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: "bold", fontSize: "16px" }}
+                >
                   {medicine.name}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#757575", fontSize: "14px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#757575", fontSize: "14px" }}
+                >
                   {medicine.brand}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#757575", fontSize: "14px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#757575", fontSize: "14px" }}
+                >
                   {medicine.category}
                 </Typography>
-                <Typography variant="body2" sx={{ color: "#757575", fontSize: "14px" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#757575", fontSize: "14px" }}
+                >
                   {medicine.packSize}
                 </Typography>
 
                 {medicine.originalPrice && (
                   <Typography
                     variant="body2"
-                    sx={{ textDecoration: "line-through", color: "#D32F2F", fontSize: "14px" }}
+                    sx={{
+                      textDecoration: "line-through",
+                      color: "#D32F2F",
+                      fontSize: "14px",
+                    }}
                   >
                     {medicine.originalPrice}
                   </Typography>
                 )}
 
-                <Typography variant="body1" sx={{ fontWeight: "bold", color: "#2E7D32", fontSize: "18px" }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#2E7D32",
+                    fontSize: "18px",
+                  }}
+                >
                   {medicine.price}
                 </Typography>
 
@@ -152,7 +199,10 @@ export const FamousMedicinesSection = ({ title = "Most Famous Medicines", showOn
                     mt: 2,
                     backgroundColor: "#1D4E89",
                     fontWeight: "bold",
-                    "&:hover": { backgroundColor: "#163d6a", transform: "scale(1.03)" },
+                    "&:hover": {
+                      backgroundColor: "#163d6a",
+                      transform: "scale(1.03)",
+                    },
                   }}
                 >
                   ADD TO CART

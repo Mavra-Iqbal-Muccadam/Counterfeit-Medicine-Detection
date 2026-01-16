@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from "../lib/supabaseClient";
 
 export default function TestDataPage({ data }) {
   return (
@@ -18,17 +18,16 @@ export default function TestDataPage({ data }) {
 }
 
 export async function getServerSideProps() {
-    const { data, error } = await supabase.from('testtable').select('*');
-    
-    if (error) {
-      console.error('Error fetching data:', error);
-      return { props: { data: [] } };
-    }
-  
-    if (!data || data.length === 0) {
-      console.log('No data found');
-    }
-  
-    return { props: { data } };
+  const { data, error } = await supabase.from("testtable").select("*");
+
+  if (error) {
+    console.error("Error fetching data:", error);
+    return { props: { data: [] } };
   }
-  
+
+  if (!data || data.length === 0) {
+    console.log("No data found");
+  }
+
+  return { props: { data } };
+}

@@ -1,47 +1,31 @@
 "use client";
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import { insertMedicine } from '../../../lib/medicineregistration';
-import { Checkbox, FormGroup, FormControlLabel, Box, TextField, Button, Typography, Grid, Tooltip, CircularProgress, Paper, Container } from "@mui/material";
-import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from '../components/MsgBox';
-import { storeMedicineOnIPFS } from "../../../pages/api/ipfs/medicine";
-import { handleSubmit, detectWallet } from '../testpage3/formsubmit';
+import { insertMedicine } from "@/lib/medicineregistration";
+import {
+  Checkbox,
+  FormGroup,
+  FormControlLabel,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Grid,
+  Tooltip,
+  CircularProgress,
+  Paper,
+  Container,
+} from "@mui/material";
+import { SuccessMsgBox, ErrorMsgBox, InfoMsgBox } from "../components/MsgBox";
+import { storeMedicineOnIPFS } from "@/pages/api/ipfs/medicine";
+import { handleSubmit, detectWallet } from "../testpage3/formsubmit";
 import Image from "next/image";
 
 const dosageOptions = ["Capsule", "Syrup", "Injection", "Antibiotics"];
 
 export default function MedicineForm({ onSubmit, onClose, initialValues }) {
-  const [medicine, setMedicine] = useState(initialValues || {
-    certificate: "",
-    name: "",
-    medicineId: "",
-    batchNumber: "",
-    manufactureDate: "",
-    expiryDate: "",
-    excipients: [""],
-    types: [],
-    description: "",
-    image: "",
-    walletAddress: "",
-  });
-
-  const [pdf, setPdf] = useState(null);
-  const [image, setImage] = useState(null);
-  const [pdfUrl, setPdfUrl] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [successMsg, setSuccessMsg] = useState({ open: false, message: "", routeButton: null });
-  const [errorMsg, setErrorMsg] = useState({ open: false, message: "" });
-  const [infoMsg, setInfoMsg] = useState({ open: false, message: "" });
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    detectWallet(setMedicine);
-  }, []);
-
-  const resetForm = () => {
-    setMedicine(initialValues || {
+  const [medicine, setMedicine] = useState(
+    initialValues || {
       certificate: "",
       name: "",
       medicineId: "",
@@ -53,7 +37,44 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
       description: "",
       image: "",
       walletAddress: "",
-    });
+    },
+  );
+
+  const [pdf, setPdf] = useState(null);
+  const [image, setImage] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState({
+    open: false,
+    message: "",
+    routeButton: null,
+  });
+  const [errorMsg, setErrorMsg] = useState({ open: false, message: "" });
+  const [infoMsg, setInfoMsg] = useState({ open: false, message: "" });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    detectWallet(setMedicine);
+  }, []);
+
+  const resetForm = () => {
+    setMedicine(
+      initialValues || {
+        certificate: "",
+        name: "",
+        medicineId: "",
+        batchNumber: "",
+        manufactureDate: "",
+        expiryDate: "",
+        excipients: [""],
+        types: [],
+        description: "",
+        image: "",
+        walletAddress: "",
+      },
+    );
     setPdf(null);
     setImage(null);
     setPdfUrl(null);
@@ -64,30 +85,30 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Validate all fields including file uploads
     const newErrors = {
       ...errors,
       certificate: validateField("certificate", pdf), // Validate pdf state
-      image: validateField("image", image) // Validate image state
+      image: validateField("image", image), // Validate image state
     };
-  
+
     // Also validate other medicine fields
     Object.keys(medicine).forEach((key) => {
       // Skip certificate and image validation here since we're handling them above
-      if (key !== 'certificate' && key !== 'image') {
+      if (key !== "certificate" && key !== "image") {
         const error = validateField(key, medicine[key]);
         if (error) newErrors[key] = error;
       }
     });
-  
+
     // Check if there are any errors
-    const hasErrors = Object.values(newErrors).some(error => error);
-    
+    const hasErrors = Object.values(newErrors).some((error) => error);
+
     if (hasErrors) {
       setErrors(newErrors);
       setIsSubmitting(false);
-      
+
       // Find the first error to show in the message box
       const firstError = Object.entries(newErrors).find(([_, error]) => error);
       if (firstError) {
@@ -95,21 +116,27 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
       }
       return;
     }
-  
+
     try {
-      const medicineData = { 
-        ...medicine, 
-        certificate: pdf ? [pdf] : [], 
-        files: image ? Array.from(image) : [] 
+      const medicineData = {
+        ...medicine,
+        certificate: pdf ? [pdf] : [],
+        files: image ? Array.from(image) : [],
       };
-      
+
       if (onSubmit) {
         await onSubmit(medicineData);
-        setSuccessMsg({ open: true, message: "✅ Medicine registration submitted successfully!" });
+        setSuccessMsg({
+          open: true,
+          message: "✅ Medicine registration submitted successfully!",
+        });
       }
     } catch (error) {
       console.error("Submission error:", error);
-      setErrorMsg({ open: true, message: error.message || "❌ Failed to register medicine" });
+      setErrorMsg({
+        open: true,
+        message: error.message || "❌ Failed to register medicine",
+      });
     } finally {
       setIsSubmitting(false);
       setInfoMsg({ open: false, message: "" });
@@ -119,15 +146,21 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) {
-      setErrorMsg({ open: true, message: "❌ Please select a file to upload." });
+      setErrorMsg({
+        open: true,
+        message: "❌ Please select a file to upload.",
+      });
       return;
     }
 
     if (file.type !== "application/pdf") {
-      setErrorMsg({ open: true, message: "❌ Please upload a valid PDF file." });
+      setErrorMsg({
+        open: true,
+        message: "❌ Please upload a valid PDF file.",
+      });
       return;
     }
-  
+
     setPdf(file); // This is what we're validating against
     setPdfUrl(URL.createObjectURL(file));
     setLoading(true);
@@ -185,7 +218,10 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
   const handleImageUpload = (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) {
-      setErrorMsg({ open: true, message: "❌ Please select a file to upload." });
+      setErrorMsg({
+        open: true,
+        message: "❌ Please select a file to upload.",
+      });
       return;
     }
 
@@ -221,13 +257,17 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
   };
 
   const removeExcipient = (index) => {
-    if (medicine.excipients.length > 1) { // Ensure at least one excipient remains
+    if (medicine.excipients.length > 1) {
+      // Ensure at least one excipient remains
       setMedicine((prev) => ({
         ...prev,
         excipients: prev.excipients.filter((_, i) => i !== index),
       }));
     } else {
-      setErrorMsg({ open: true, message: "❌ At least one excipient is required" });
+      setErrorMsg({
+        open: true,
+        message: "❌ At least one excipient is required",
+      });
     }
   };
   return (
@@ -295,7 +335,13 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
           }}
         >
           {/* Image and Heading */}
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <Typography variant="h4" sx={{ fontWeight: "bold" }}>
               Medicine Registration
             </Typography>
@@ -316,49 +362,67 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
             {/* Upload PDF and Medicine Image Buttons */}
             <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
               <Tooltip title="Upload the medicine certificate" arrow>
-              <Box>
-      <Button
-        variant="contained"
-        component="label"
-        sx={{ 
-          padding: "10px 30px", 
-          width: "100%", 
-          height: "50px",
-          border: errors.certificate ? "1px solid red" : "none"
-        }}
-      >
-                  📄 Upload PDF
-        <input type="file" accept="application/pdf" hidden onChange={handleFileChange} />
-      </Button>
-      {errors.certificate && (
-        <Typography color="error" variant="caption" sx={{ display: "block", mt: 1 }}>
-          {errors.certificate}
-        </Typography>
-      )}
-    </Box>
-  </Tooltip>
-  <Tooltip title="Upload medicine image" arrow>
-    <Box>
-      <Button
-        variant="contained"
-        component="label"
-        sx={{ 
-          padding: "10px 30px", 
-          width: "100%", 
-          height: "50px",
-          border: errors.image ? "1px solid red" : "none"
-        }}
-      >
-                  📂 Upload Image
-        <input type="file" multiple hidden onChange={handleImageUpload} />
-      </Button>
-      {errors.image && (
-        <Typography color="error" variant="caption" sx={{ display: "block", mt: 1 }}>
-          {errors.image}
-        </Typography>
-      )}
-    </Box>
-  </Tooltip>
+                <Box>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    sx={{
+                      padding: "10px 30px",
+                      width: "100%",
+                      height: "50px",
+                      border: errors.certificate ? "1px solid red" : "none",
+                    }}
+                  >
+                    📄 Upload PDF
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      hidden
+                      onChange={handleFileChange}
+                    />
+                  </Button>
+                  {errors.certificate && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ display: "block", mt: 1 }}
+                    >
+                      {errors.certificate}
+                    </Typography>
+                  )}
+                </Box>
+              </Tooltip>
+              <Tooltip title="Upload medicine image" arrow>
+                <Box>
+                  <Button
+                    variant="contained"
+                    component="label"
+                    sx={{
+                      padding: "10px 30px",
+                      width: "100%",
+                      height: "50px",
+                      border: errors.image ? "1px solid red" : "none",
+                    }}
+                  >
+                    📂 Upload Image
+                    <input
+                      type="file"
+                      multiple
+                      hidden
+                      onChange={handleImageUpload}
+                    />
+                  </Button>
+                  {errors.image && (
+                    <Typography
+                      color="error"
+                      variant="caption"
+                      sx={{ display: "block", mt: 1 }}
+                    >
+                      {errors.image}
+                    </Typography>
+                  )}
+                </Box>
+              </Tooltip>
             </Box>
 
             {/* Form Fields in Grid */}
@@ -441,57 +505,65 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
               </Grid>
 
               {/* Excipients */}
-<Grid item xs={12}>
-  <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
-    Excipients
-  </Typography>
-  <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-    {medicine.excipients.map((excipient, index) => (
-      <Box key={index} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-        <TextField
-          fullWidth
-          label={`Excipient ${index + 1}`}
-          value={excipient}
-          onChange={(e) => {
-            const newExcipients = [...medicine.excipients];
-            newExcipients[index] = e.target.value;
-            setMedicine((prev) => ({ ...prev, excipients: newExcipients }));
-          }}
-          InputLabelProps={{ required: false }}
-        />
-        <Tooltip title="Remove excipient" arrow>
-  <Button
-    variant="outlined"
-    color="error"
-    onClick={() => removeExcipient(index)}
-    sx={{ 
-      minWidth: '40px', 
-      height: '56px',
-      borderColor: 'error.main'
-    }}
-  >
-    −
-  </Button>
-</Tooltip>
-      </Box>
-    ))}
-  </Box>
-  <Button
-    type="button"
-    onClick={addExcipient}
-    variant="contained"
-    sx={{ mt: 2, padding: "10px 30px" }}
-  >
-    Add Excipient
-  </Button>
-</Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
+                  Excipients
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {medicine.excipients.map((excipient, index) => (
+                    <Box
+                      key={index}
+                      sx={{ display: "flex", gap: 1, alignItems: "center" }}
+                    >
+                      <TextField
+                        fullWidth
+                        label={`Excipient ${index + 1}`}
+                        value={excipient}
+                        onChange={(e) => {
+                          const newExcipients = [...medicine.excipients];
+                          newExcipients[index] = e.target.value;
+                          setMedicine((prev) => ({
+                            ...prev,
+                            excipients: newExcipients,
+                          }));
+                        }}
+                        InputLabelProps={{ required: false }}
+                      />
+                      <Tooltip title="Remove excipient" arrow>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => removeExcipient(index)}
+                          sx={{
+                            minWidth: "40px",
+                            height: "56px",
+                            borderColor: "error.main",
+                          }}
+                        >
+                          −
+                        </Button>
+                      </Tooltip>
+                    </Box>
+                  ))}
+                </Box>
+                <Button
+                  type="button"
+                  onClick={addExcipient}
+                  variant="contained"
+                  sx={{ mt: 2, padding: "10px 30px" }}
+                >
+                  Add Excipient
+                </Button>
+              </Grid>
 
               {/* Medicine Type */}
               <Grid item xs={12}>
                 <Typography variant="h6" sx={{ mt: 1, mb: 1 }}>
                   Medicine Type
                 </Typography>
-                <FormGroup sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
+                <FormGroup
+                  sx={{ display: "flex", flexDirection: "row", gap: 2 }}
+                >
                   {dosageOptions.map((option, index) => (
                     <FormControlLabel
                       key={index}
@@ -525,7 +597,14 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
               </Grid>
             </Grid>
 
-            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                mt: 3,
+                gap: 2,
+              }}
+            >
               {onClose && (
                 <Button
                   variant="outlined"
@@ -542,7 +621,11 @@ export default function MedicineForm({ onSubmit, onClose, initialValues }) {
                 sx={{ padding: "10px 30px" }}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <CircularProgress size={24} /> : "Register Medicine"}
+                {isSubmitting ? (
+                  <CircularProgress size={24} />
+                ) : (
+                  "Register Medicine"
+                )}
               </Button>
             </Box>
           </Box>
@@ -563,11 +646,15 @@ const validateField = (name, value) => {
     case "expiryDate":
       return value ? "" : "Expiry date is required.";
     case "excipients":
-      return Array.isArray(value) && value.length > 0 && value.every((item) => item.trim() !== "")
+      return Array.isArray(value) &&
+        value.length > 0 &&
+        value.every((item) => item.trim() !== "")
         ? ""
         : "At least one excipient is required.";
     case "types":
-      return value && value.length > 0 ? "" : "At least one type must be selected.";
+      return value && value.length > 0
+        ? ""
+        : "At least one type must be selected.";
     case "description":
       return value.trim() ? "" : "Description is required.";
     default:

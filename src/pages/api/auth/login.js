@@ -1,8 +1,6 @@
-
 // import { supabase } from '../../../lib/supabaseClientanon';
 
 // // import { supabase } from '../../../lib/supabaseClientservice';
-
 
 // import bcrypt from 'bcryptjs';
 // import jwt from 'jsonwebtoken';
@@ -37,7 +35,7 @@
 //     const token = jwt.sign(
 //       { id: data.id, email: data.email, role: data.role },
 //       process.env.JWT_SECRET,
-//       { expiresIn: '5h' } 
+//       { expiresIn: '5h' }
 //     );
 
 //     console.log("🔐 [DEBUG] JWT Token Generated:", token);
@@ -64,63 +62,62 @@
 //   }
 // }
 
-
-import { supabase } from '../../../lib/supabaseClientanon';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { serialize } from 'cookie';
+import { supabase } from "@/lib/supabaseClientanon";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { serialize } from "cookie";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 
   const { email, password } = req.body;
 
   try {
     const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
+      .from("users")
+      .select("*")
+      .eq("email", email)
       .single();
 
     if (error || !data) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     const isValidPassword = await bcrypt.compare(password, data.password);
     if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
       { id: data.id, email: data.email, role: data.role },
       process.env.JWT_SECRET,
-      { expiresIn: '5h' }
+      { expiresIn: "5h" },
     );
 
     // Set cookie
     res.setHeader(
-      'Set-Cookie',
-      serialize('auth_token', token, {
+      "Set-Cookie",
+      serialize("auth_token", token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/',
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
         maxAge: 60 * 60 * 5,
-      })
+      }),
     );
 
     // Remove sensitive data before sending response
     const { password: _, ...userData } = data;
 
-    res.status(200).json({ 
-      message: 'Login successful', 
+    res.status(200).json({
+      message: "Login successful",
       user: userData,
-      token // Also send token in response for client-side storage
+      token, // Also send token in response for client-side storage
     });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ message: 'Server error', error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 }

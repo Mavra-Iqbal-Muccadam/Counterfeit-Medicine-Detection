@@ -1,6 +1,6 @@
 // pages/api/auth/admin.js
 
-import { supabase } from "../../../lib/supabaseClientservice";
+import { supabase } from "@/lib/supabaseClientservice";
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
@@ -36,7 +36,9 @@ export default async function handler(req, res) {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     try {
@@ -56,7 +58,13 @@ export default async function handler(req, res) {
         return res.status(401).json({ message: "Invalid email or password" });
       }
 
-      return res.status(200).json({ message: "Login successful", email: data.email, role: data.role });
+      return res
+        .status(200)
+        .json({
+          message: "Login successful",
+          email: data.email,
+          role: data.role,
+        });
     } catch (error) {
       console.error("Admin POST error:", error);
       return res.status(500).json({ message: "Internal server error" });

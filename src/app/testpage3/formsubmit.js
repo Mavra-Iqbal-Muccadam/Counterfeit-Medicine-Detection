@@ -1,5 +1,5 @@
 "use client";
-import { storeMedicineOnIPFS } from "../../../pages/api/ipfs/medicine"; // Import IPFS function
+import { storeMedicineOnIPFS } from "@/pages/api/ipfs/medicine"; // Import IPFS function
 import { ethers } from "ethers"; // ✅ Import ethers v6
 import MedicineNFTABI from "../blockchain/abi/MedicineNFTABI.json";
 
@@ -12,7 +12,7 @@ export const handleSubmit = async (e, medicine, setMedicine) => {
   console.log("📂 Files Before Submission:", medicine.files);
   console.log(
     "📜 Medicine Data Before Upload:",
-    JSON.stringify(medicine, null, 2)
+    JSON.stringify(medicine, null, 2),
   );
 
   // ✅ Store data & files on IPFS and get all hashes
@@ -70,7 +70,7 @@ const mintMedicineNFT = async (manufacturerId, ipfsHash) => {
     const contract = new ethers.Contract(
       CONTRACT_ADDRESS,
       MedicineNFTABI,
-      signer
+      signer,
     );
 
     console.log("📜 Minting Medicine NFT...");

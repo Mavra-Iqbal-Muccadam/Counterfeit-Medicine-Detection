@@ -1,4 +1,4 @@
-import { supabase } from '../../../lib/supabaseClientservice';
+import { supabase } from "@/lib/supabaseClientservice";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -45,10 +45,11 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: "Login successful", user: data });
   } catch (error) {
     console.error("Error during login:", error);
-    return res.status(500).json({ message: "An error occurred. Please try again" });
+    return res
+      .status(500)
+      .json({ message: "An error occurred. Please try again" });
   }
 }
-
 
 // Example login function
 const handleLogin = async (email, password) => {

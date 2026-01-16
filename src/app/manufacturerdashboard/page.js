@@ -37,7 +37,7 @@ import {
   removeMedicineFromSale,
   fetchSaleMedicinesByWallet,
   fetchAllMedicineTypes,
-} from "../../../lib/saleMedicineDb";
+} from "@/lib/saleMedicineDb";
 import { fetchMedicinesByManufacturerAndStatus } from "../testingblockchain/medicinework/walletmedicine/fetch";
 import { ethers } from "ethers";
 import NavBar from "../components/NavBar";
@@ -142,7 +142,7 @@ const ManufacturerDashboard = () => {
       const manufacturer = approvedManufacturers.find(
         (m) =>
           m.walletAddress &&
-          m.walletAddress.toLowerCase() === address.toLowerCase()
+          m.walletAddress.toLowerCase() === address.toLowerCase(),
       );
 
       if (!manufacturer) {
@@ -239,7 +239,7 @@ const ManufacturerDashboard = () => {
     setLoading((prev) => ({ ...prev, pending: true }));
     try {
       const { pending } = await fetchMedicinesByManufacturerAndStatus(
-        walletStatus.address
+        walletStatus.address,
       );
       {
         /* Changed from walletAddress */
@@ -259,7 +259,7 @@ const ManufacturerDashboard = () => {
     setLoading((prev) => ({ ...prev, accepted: true }));
     try {
       const { accepted } = await fetchMedicinesByManufacturerAndStatus(
-        walletStatus.address
+        walletStatus.address,
       );
       setAcceptedMedicines(accepted);
     } catch (error) {
@@ -279,7 +279,7 @@ const ManufacturerDashboard = () => {
     setLoading((prev) => ({ ...prev, rejected: true }));
     try {
       const { rejected } = await fetchMedicinesByManufacturerAndStatus(
-        walletStatus.address
+        walletStatus.address,
       );
       setRejectedMedicines(rejected);
     } catch (error) {
@@ -372,7 +372,7 @@ const ManufacturerDashboard = () => {
       try {
         // Check if already in sales
         const isAlreadyInSales = salesData.some(
-          (sale) => sale.medicine_id === selectedMedicine.tokenId
+          (sale) => sale.medicine_id === selectedMedicine.tokenId,
         );
 
         if (isAlreadyInSales) {
@@ -421,12 +421,12 @@ const ManufacturerDashboard = () => {
     try {
       await removeMedicineFromSale(
         saleToRemove.medicine_id,
-        walletStatus.address
+        walletStatus.address,
       );
       setSalesData(
         salesData.filter(
-          (sale) => sale.medicine_id !== saleToRemove.medicine_id
-        )
+          (sale) => sale.medicine_id !== saleToRemove.medicine_id,
+        ),
       );
       setSuccessMsg({
         open: true,
@@ -457,14 +457,14 @@ const ManufacturerDashboard = () => {
       await updateSaleMedicine(
         selectedMedicine.medicine_id,
         updates,
-        walletStatus.address
+        walletStatus.address,
       );
 
       // Update local state
       const updatedSales = salesData.map((sale) =>
         sale.medicine_id === selectedMedicine.medicine_id
           ? { ...sale, ...updates }
-          : sale
+          : sale,
       );
 
       setSalesData(updatedSales);
@@ -808,7 +808,7 @@ const ManufacturerDashboard = () => {
                           {
                             ipfsHash: sale.image_url.replace(
                               "https://ipfs.io/ipfs/",
-                              ""
+                              "",
                             ),
                           },
                         ]
@@ -1124,7 +1124,7 @@ const ManufacturerDashboard = () => {
         isInSales={
           selectedMedicine
             ? salesData.some(
-                (sale) => sale.tokenId === selectedMedicine.tokenId
+                (sale) => sale.tokenId === selectedMedicine.tokenId,
               )
             : false
         }
