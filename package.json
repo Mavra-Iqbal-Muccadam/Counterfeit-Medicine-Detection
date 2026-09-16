@@ -14,7 +14,6 @@
     "@huggingface/inference": "^3.1.5",
     "@mui/icons-material": "6.5.0",
     "@mui/material": "^6.4.7",
-    "@next/swc-win32-x64-msvc": "15.1.6",
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.1",
