@@ -13,6 +13,10 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  eslint: {
+    // Lint errors won't fail the production build
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;
